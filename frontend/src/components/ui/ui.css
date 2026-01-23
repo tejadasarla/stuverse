@@ -1,0 +1,94 @@
+/* Button Styles */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    border-radius: var(--radius-md);
+    transition: all 0.2s ease;
+    font-size: 0.95rem;
+    letter-spacing: 0.025em;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary {
+    background-color: var(--color-primary);
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.4);
+}
+
+.btn-primary:hover {
+    background-color: var(--color-primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 10px -1px rgba(99, 102, 241, 0.5);
+}
+
+.btn-secondary {
+    background-color: transparent;
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+}
+
+.btn-secondary:hover {
+    background-color: var(--color-surface);
+    border-color: var(--color-text-dim);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+/* Input Styles */
+.input-group {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.input-field {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background-color: rgba(15, 23, 42, 0.6);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.input-field::placeholder {
+    color: transparent;
+    transition: color 0.2s ease;
+}
+
+.input-field:focus::placeholder {
+    color: rgba(148, 163, 184, 0.5);
+}
+
+.input-field:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    background-color: rgba(15, 23, 42, 0.8);
+}
+
+.input-label {
+    position: absolute;
+    left: 1rem;
+    top: 0.85rem;
+    color: var(--color-text-dim);
+    pointer-events: none;
+    transition: all 0.2s ease;
+    background-color: transparent;
+    padding: 0 0.25rem;
+}
+
+.input-field:focus~.input-label,
+.input-field:not(:placeholder-shown)~.input-label {
+    top: -0.6rem;
+    left: 0.8rem;
+    font-size: 0.85rem;
+    color: var(--color-primary);
+    background-color: var(--color-bg);
+}

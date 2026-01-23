@@ -1,18 +1,21 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Auth from "./pages/Auth";
-import "./App.css";
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import Layout from './pages/Layout';
+import Auth from './pages/Auth';
+import ForgotPassword from './pages/ForgotPassword';
+import './App.css';
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        {/* Auth Page */}
-        <Route path="/" element={<Auth />} />
-
-        {/* Future routes (example) */}
-        {/* <Route path="/dashboard" element={<Dashboard />} /> */}
-      </Routes>
-    </Router>
+    <Routes>
+      <Route path="/" element={<Layout />}>
+        {/* Redirect root to login or show Login as default */}
+        <Route index element={<Auth />} />
+        <Route path="login" element={<Auth />} />
+        <Route path="signup" element={<Auth />} />
+        <Route path="forgot-password" element={<ForgotPassword />} />
+      </Route>
+    </Routes>
   );
 }
 
