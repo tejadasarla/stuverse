@@ -14,40 +14,49 @@ const ForgotPassword = () => {
     };
 
     return (
-        <div className="container" style={{ minHeight: '400px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-            <div style={{ width: '100%', maxWidth: '400px', textAlign: 'center' }}>
-                <h1 style={{ fontWeight: 'bold', marginBottom: '10px' }}>Forgot Password</h1>
-                <p style={{ fontSize: '14px', marginBottom: '20px' }}>Enter your email to reset your password</p>
+        <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: '100vh',
+            width: '100%',
+            background: 'linear-gradient(to right, #e2e2e2, #c9d6ff)'
+        }}>
+            <div className="container" style={{ minHeight: '400px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+                <div style={{ width: '100%', maxWidth: '400px', textAlign: 'center' }}>
+                    <h1 style={{ fontWeight: 'bold', marginBottom: '10px' }}>Forgot Password</h1>
+                    <p style={{ fontSize: '14px', marginBottom: '20px' }}>Enter your email to reset your password</p>
 
-                {!submitted ? (
-                    <form onSubmit={handleSubmit} style={{ padding: '0', background: 'transparent' }}>
-                        <Input
-                            id="email"
-                            label="Email Address"
-                            type="email"
-                            icon={Mail}
-                            required
-                        />
+                    {!submitted ? (
+                        <form onSubmit={handleSubmit} style={{ padding: '0', background: 'transparent' }}>
+                            <Input
+                                id="email"
+                                label="Email Address"
+                                type="email"
+                                icon={Mail}
+                                required
+                            />
 
-                        <button style={{ marginTop: '20px', width: '100%' }}>
-                            Send Reset Link
-                        </button>
-                    </form>
-                ) : (
-                    <div style={{ textAlign: 'center' }}>
-                        <div style={{ background: '#e0e7ff', color: '#512da8', padding: '15px', borderRadius: '8px', marginBottom: '20px', fontSize: '14px' }}>
-                            We've sent a password reset link to your email.
+                            <button style={{ marginTop: '20px', width: '100%' }}>
+                                Send Reset Link
+                            </button>
+                        </form>
+                    ) : (
+                        <div style={{ textAlign: 'center' }}>
+                            <div style={{ background: '#e0e7ff', color: '#512da8', padding: '15px', borderRadius: '8px', marginBottom: '20px', fontSize: '14px' }}>
+                                We've sent a password reset link to your email.
+                            </div>
+                            <button onClick={() => setSubmitted(false)} className="hidden" style={{ color: '#333', borderColor: '#ccc', width: '100%' }}>
+                                Try another email
+                            </button>
                         </div>
-                        <button onClick={() => setSubmitted(false)} className="hidden" style={{ color: '#333', borderColor: '#ccc', width: '100%' }}>
-                            Try another email
-                        </button>
-                    </div>
-                )}
+                    )}
 
-                <div style={{ marginTop: '20px' }}>
-                    <Link to="/login" style={{ fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
-                        <span>←</span> Back to Login
-                    </Link>
+                    <div style={{ marginTop: '20px' }}>
+                        <Link to="/login" style={{ fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
+                            <span>←</span> Back to Login
+                        </Link>
+                    </div>
                 </div>
             </div>
         </div>
