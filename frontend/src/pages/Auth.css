@@ -97,14 +97,15 @@ body {
 }
 
 .input-field {
-    background-color: #eee;
-    border: none;
-    margin: 0;
-    padding: 10px 15px;
-    font-size: 13px;
-    border-radius: 8px;
-    width: 100%;
-    outline: none;
+    background-color: #eee !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 10px 15px !important;
+    font-size: 13px !important;
+    border-radius: 8px !important;
+    width: 100% !important;
+    outline: none !important;
+    color: #333 !important;
 }
 
 .input-icon {

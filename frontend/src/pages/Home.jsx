@@ -1,8 +1,15 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import './Home.css';
 
 const Home = () => {
+    const navigate = useNavigate();
+
+    const handleJoinClick = () => {
+        navigate('/communities');
+    };
+
     return (
         <div className="home-container">
             <Navbar />
@@ -15,6 +22,7 @@ const Home = () => {
                         The ultimate community platform for students to connect with like-minded peers,
                         form study groups, and build lifelong friendships based on shared passions.
                     </p>
+                    <button className="get-started-btn" onClick={() => navigate('/signup')}>Get Started &rarr;</button>
                 </div>
 
                 <div className="hero-images">
@@ -74,11 +82,13 @@ const Home = () => {
                         <span className="label">DISCOVER TRIBES</span>
                         <h2>Popular Communities</h2>
                     </div>
-                    <a href="/communities" className="view-all">View all communities &rarr;</a>
+                    <button onClick={() => navigate('/communities')} className="view-all" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '1rem', color: '#0045ff', fontWeight: 'bold' }}>
+                        View all communities &rarr;
+                    </button>
                 </div>
 
                 <div className="communities-grid">
-                    <div className="community-card">
+                    <div className="community-card" onClick={() => navigate('/communities')}>
                         <div className="card-image">
                             <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=400&auto=format&fit=crop" alt="Mind Flayers" />
                             <span className="member-count">1.2k Members</span>
@@ -90,12 +100,12 @@ const Home = () => {
                             </div>
                             <p>For developers, designers, and tech enthusiasts to share code.</p>
                             <div className="card-footer">
-                                <button className="join-link">Join</button>
+                                <button className="join-link" onClick={(e) => { e.stopPropagation(); navigate('/login'); }}>Join</button>
                             </div>
                         </div>
                     </div>
 
-                    <div className="community-card">
+                    <div className="community-card" onClick={() => navigate('/communities')}>
                         <div className="card-image">
                             <img src="https://images.unsplash.com/photo-1544967082-d9d25d867d66?q=80&w=400&auto=format&fit=crop" alt="The Arts of an Artist" />
                             <span className="member-count">850 Members</span>
@@ -107,12 +117,12 @@ const Home = () => {
                             </div>
                             <p>Painters, digital artists, and sculptors sharing their portfolio work.</p>
                             <div className="card-footer">
-                                <button className="join-link">Join</button>
+                                <button className="join-link" onClick={(e) => { e.stopPropagation(); navigate('/login'); }}>Join</button>
                             </div>
                         </div>
                     </div>
 
-                    <div className="community-card">
+                    <div className="community-card" onClick={() => navigate('/communities')}>
                         <div className="card-image">
                             <img src="https://images.unsplash.com/photo-1491843384427-bc97b7677b67?q=80&w=400&auto=format&fit=crop" alt="Stranger Studies" />
                             <span className="member-count">3.4k Members</span>
@@ -124,12 +134,12 @@ const Home = () => {
                             </div>
                             <p>Find study partners for exams, assignments, and research.</p>
                             <div className="card-footer">
-                                <button className="join-link">Join</button>
+                                <button className="join-link" onClick={(e) => { e.stopPropagation(); navigate('/login'); }}>Join</button>
                             </div>
                         </div>
                     </div>
 
-                    <div className="community-card">
+                    <div className="community-card" onClick={() => navigate('/communities')}>
                         <div className="card-image">
                             <img src="https://images.unsplash.com/photo-1511379938547-c1f69419868d?q=80&w=400&auto=format&fit=crop" alt="Vocalists" />
                             <span className="member-count">920 Members</span>
@@ -141,7 +151,7 @@ const Home = () => {
                             </div>
                             <p>Jam sessions, concert buddies, and music production talk.</p>
                             <div className="card-footer">
-                                <button className="join-link">Join</button>
+                                <button className="join-link" onClick={(e) => { e.stopPropagation(); navigate('/login'); }}>Join</button>
                             </div>
                         </div>
                     </div>

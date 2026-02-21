@@ -33,6 +33,25 @@
     font-size: 1.1rem;
     color: var(--text-dim);
     line-height: 1.6;
+    margin-bottom: 2.5rem;
+}
+
+.get-started-btn {
+    padding: 15px 35px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 20px rgba(0, 69, 255, 0.2);
+}
+
+.get-started-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(0, 69, 255, 0.3);
+    background: #0037cc;
 }
 
 .hero-images {
