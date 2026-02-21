@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { User, Mail, Lock, Github, Facebook, Linkedin } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
-import Input from '../components/ui/Input';
+import Input from '../../components/ui/Input';
 import './Auth.css';
 
 const Auth = () => {

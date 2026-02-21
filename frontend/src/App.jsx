@@ -1,10 +1,10 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import Layout from './pages/Layout';
-import Auth from './pages/Auth';
-import ForgotPassword from './pages/ForgotPassword';
-import Home from './pages/Home';
-import Communities from './pages/Communities';
+import Layout from './pages/Layout/Layout';
+import Auth from './pages/Auth/Auth';
+import ForgotPassword from './pages/Auth/ForgotPassword';
+import Home from './pages/Home/Home';
+import Communities from './pages/Communities/Communities';
 import './App.css';
 
 function App() {
