@@ -144,10 +144,10 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login', triggerRestricted =
 
                             {!forgotSubmitted ? (
                                 <form onSubmit={handleForgotPassword} className="forgot-modal-form">
-                                    <p>Enter your email to reset your password</p>
+                                    <p>Enter your college email to reset your password</p>
                                     <Input
                                         name="email"
-                                        label="Email Address"
+                                        label="College Email Address"
                                         type="email"
                                         icon={Mail}
                                         value={formData.email}
@@ -246,13 +246,13 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login', triggerRestricted =
                 <div className="modal-toggle-container">
                     <div className="modal-toggle">
                         <div className="modal-toggle-panel toggle-left">
-                            <h1>Welcome Back!</h1>
-                            <p>To keep connected with us please login with your personal info</p>
+                            <h1>Hello, Friend!</h1>
+                            <p>Enter your personal details and start journey with us</p>
                             <button className="modal-ghost-btn" onClick={() => setIsSignUp(false)}>Sign In</button>
                         </div>
                         <div className="modal-toggle-panel toggle-right">
-                            <h1>Hello, Friend!</h1>
-                            <p>Enter your personal details and start journey with us</p>
+                            <h1>Welcome Back!</h1>
+                            <p>To keep connected with us please login with your personal info</p>
                             <button className="modal-ghost-btn" onClick={() => setIsSignUp(true)}>Sign Up</button>
                         </div>
                     </div>

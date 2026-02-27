@@ -1,17 +1,32 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail } from 'lucide-react';
+import { auth } from '../../firebase.config';
+import { sendPasswordResetEmail } from 'firebase/auth';
 import Input from '../../components/ui/Input';
-import './Auth.css'; // Use the same styles as Auth page
+import './Auth.css';
 import logo from '../../assets/logo.png';
 
 const ForgotPassword = () => {
+    const [email, setEmail] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
     const [submitted, setSubmitted] = useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        setSubmitted(true);
-        // Logic to send reset email
+        setLoading(true);
+        setError('');
+        try {
+            await sendPasswordResetEmail(auth, email);
+            console.log("Password reset email sent to:", email);
+            setSubmitted(true);
+        } catch (err) {
+            console.error("Error sending password reset email:", err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -39,11 +54,15 @@ const ForgotPassword = () => {
                                 label="Email Address"
                                 type="email"
                                 icon={Mail}
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 required
                             />
 
-                            <button style={{ marginTop: '20px', width: '100%' }}>
-                                Send Reset Link
+                            {error && <p style={{ color: 'red', fontSize: '12px', marginTop: '10px' }}>{error}</p>}
+
+                            <button style={{ marginTop: '20px', width: '100%' }} disabled={loading}>
+                                {loading ? 'Sending...' : 'Send Reset Link'}
                             </button>
                         </form>
                     ) : (
