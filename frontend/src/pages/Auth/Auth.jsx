@@ -20,12 +20,12 @@ const Auth = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    dob: '',
     collegeName: ''
   });
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (error) setError('');
   };
 
   const handleRegisterClick = () => {
@@ -42,6 +42,14 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    const collegeEmailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(edu|ac\.in|edu\.sg|edu\.[a-z]{2})$/i;
+
+    if (!collegeEmailRegex.test(formData.email)) {
+      setError("Please use your official college email (ending in .edu, .ac.in, or .edu.sg)");
+      setLoading(false);
+      return;
+    }
 
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
@@ -118,11 +126,19 @@ const Auth = () => {
             </div>
             <span style={{ fontSize: '12px' }}>or register with social platforms</span>
             <Input type="text" label="Username" id="signup-name" name="username" icon={User} onChange={handleInputChange} value={formData.username} required />
-            <Input type="email" label="Email" id="signup-email" name="email" icon={Mail} onChange={handleInputChange} value={formData.email} required />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', width: '100%' }}>
-              <Input type="text" label="College Name" name="collegeName" onChange={handleInputChange} value={formData.collegeName} required />
-              <Input type="date" label="DOB" name="dob" onChange={handleInputChange} value={formData.dob} required />
-            </div>
+            <Input
+              type="email"
+              label="College Email"
+              id="signup-email"
+              name="email"
+              icon={Mail}
+              onChange={handleInputChange}
+              value={formData.email}
+              required
+              pattern=".+\.(edu|ac\.in|edu\.sg|edu\.[a-z]{2})"
+              title="Please use an official college email (.edu, .ac.in, or .edu.sg)"
+            />
+            <Input type="text" label="College Name" name="collegeName" onChange={handleInputChange} value={formData.collegeName} required />
             <Input type="password" label="Password" id="signup-password" name="password" icon={Lock} onChange={handleInputChange} value={formData.password} required />
             <Input type="password" label="Re-enter Password" id="signup-confirm" name="confirmPassword" icon={Lock} onChange={handleInputChange} value={formData.confirmPassword} required />
             {error && isActive && <p style={{ color: 'red', fontSize: '12px' }}>{error}</p>}
@@ -145,7 +161,17 @@ const Auth = () => {
               <a href="#" className="icon"><Linkedin size={20} fill="#0A66C2" color="#0A66C2" /></a>
             </div>
             <span style={{ fontSize: '12px' }}>or use your email password</span>
-            <Input type="email" label="Email" id="login-email" name="email" icon={Mail} onChange={handleInputChange} value={formData.email} required />
+            <Input
+              type="email"
+              label="College Email"
+              id="login-email"
+              name="email"
+              icon={Mail}
+              onChange={handleInputChange}
+              value={formData.email}
+              required
+              pattern=".+\.(edu|ac\.in|edu\.sg|edu\.[a-z]{2})"
+            />
             <Input type="password" label="Password" id="login-password" name="password" icon={Lock} onChange={handleInputChange} value={formData.password} required />
             {error && !isActive && <p style={{ color: 'red', fontSize: '12px' }}>{error}</p>}
             <a href="/forgot-password">Forget Your Password?</a>

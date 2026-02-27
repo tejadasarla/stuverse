@@ -5,6 +5,12 @@ exports.register = async (req, res) => {
     try {
         const { email, password, username, dob, collegeName, branch, yearOfStudy } = req.body;
 
+        // Domain validation for college emails
+        const collegeEmailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(edu|ac\.in|edu\.sg|edu\.[a-z]{2})$/i;
+        if (!collegeEmailRegex.test(email)) {
+            return res.status(400).json({ error: "Only official college email addresses (.edu, .ac.in, .edu.sg) are allowed." });
+        }
+
         // Create user in Firebase Auth
         const userRecord = await admin.auth().createUser({
             email,
