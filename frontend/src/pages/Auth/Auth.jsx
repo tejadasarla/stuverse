@@ -1,22 +1,76 @@
 import React, { useState } from 'react';
 import { User, Mail, Lock, Github, Facebook, Linkedin } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { auth } from '../../firebase.config';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import Input from '../../components/ui/Input';
 import './Auth.css';
 
 const Auth = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isActive, setIsActive] = useState(location.pathname === '/signup');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  // Form States
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: ''
+  });
+
+  const handleInputChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleRegisterClick = () => {
     setIsActive(true);
+    setError('');
   };
 
   const handleLoginClick = () => {
     setIsActive(false);
+    setError('');
   };
 
-  //   SVG Logo for Google since Lucide doesn't have it
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Registration failed');
+
+      alert('Registration successful! Please sign in.');
+      setIsActive(false);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    try {
+      await signInWithEmailAndPassword(auth, formData.email, formData.password);
+      navigate('/'); // Redirect to home after login
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // SVG Logo for Google
   const GoogleIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
       <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -39,37 +93,39 @@ const Auth = () => {
       <div className={`container ${isActive ? 'active' : ''}`} id="container">
         {/* Sign Up Form */}
         <div className="form-container sign-up">
-          <form onSubmit={(e) => e.preventDefault()}>
+          <form onSubmit={handleSignup}>
             <h1 style={{ fontWeight: 'bold', margin: '0' }}>Registration</h1>
             <div className="social-icons">
               <a href="#" className="icon"><GoogleIcon /></a>
-              <a href="#" className="icon"><Facebook size={20} fill="#1877F2" color="#1877F2" style={{ fill: '#1877F2' }} /></a>
+              <a href="#" className="icon"><Facebook size={20} fill="#1877F2" color="#1877F2" /></a>
               <a href="#" className="icon"><Github size={20} /></a>
-              <a href="#" className="icon"><Linkedin size={20} fill="#0A66C2" color="#0A66C2" style={{ fill: '#0A66C2' }} /></a>
+              <a href="#" className="icon"><Linkedin size={20} fill="#0A66C2" color="#0A66C2" /></a>
             </div>
             <span style={{ fontSize: '12px' }}>or register with social platforms</span>
-            <Input type="text" label="Username" id="signup-name" icon={User} />
-            <Input type="email" label="Email" id="signup-email" icon={Mail} />
-            <Input type="password" label="Password" id="signup-password" icon={Lock} />
-            <button style={{ marginTop: '10px' }}>Register</button>
+            <Input type="text" label="Username" id="signup-name" name="username" icon={User} onChange={handleInputChange} value={formData.username} required />
+            <Input type="email" label="Email" id="signup-email" name="email" icon={Mail} onChange={handleInputChange} value={formData.email} required />
+            <Input type="password" label="Password" id="signup-password" name="password" icon={Lock} onChange={handleInputChange} value={formData.password} required />
+            {error && isActive && <p style={{ color: 'red', fontSize: '12px' }}>{error}</p>}
+            <button style={{ marginTop: '10px' }} disabled={loading}>{loading ? 'Registering...' : 'Register'}</button>
           </form>
         </div>
 
         {/* Sign In Form */}
         <div className="form-container sign-in">
-          <form onSubmit={(e) => e.preventDefault()}>
+          <form onSubmit={handleLogin}>
             <h1 style={{ fontWeight: 'bold', margin: '0' }}>Sign In</h1>
             <div className="social-icons">
               <a href="#" className="icon"><GoogleIcon /></a>
-              <a href="#" className="icon"><Facebook size={20} fill="#1877F2" color="#1877F2" style={{ fill: '#1877F2' }} /></a>
+              <a href="#" className="icon"><Facebook size={20} fill="#1877F2" color="#1877F2" /></a>
               <a href="#" className="icon"><Github size={20} /></a>
-              <a href="#" className="icon"><Linkedin size={20} fill="#0A66C2" color="#0A66C2" style={{ fill: '#0A66C2' }} /></a>
+              <a href="#" className="icon"><Linkedin size={20} fill="#0A66C2" color="#0A66C2" /></a>
             </div>
             <span style={{ fontSize: '12px' }}>or use your email password</span>
-            <Input type="email" label="Email" id="login-email" icon={Mail} />
-            <Input type="password" label="Password" id="login-password" icon={Lock} />
+            <Input type="email" label="Email" id="login-email" name="email" icon={Mail} onChange={handleInputChange} value={formData.email} required />
+            <Input type="password" label="Password" id="login-password" name="password" icon={Lock} onChange={handleInputChange} value={formData.password} required />
+            {error && !isActive && <p style={{ color: 'red', fontSize: '12px' }}>{error}</p>}
             <a href="/forgot-password">Forget Your Password?</a>
-            <button style={{ marginTop: '10px' }}>Sign In</button>
+            <button style={{ marginTop: '10px' }} disabled={loading}>{loading ? 'Signing In...' : 'Sign In'}</button>
           </form>
         </div>
 
