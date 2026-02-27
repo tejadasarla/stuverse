@@ -5,6 +5,7 @@ import { auth } from '../../firebase.config';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import Input from '../../components/ui/Input';
 import './Auth.css';
+import logo from '../../assets/logo.png';
 
 const Auth = () => {
   const location = useLocation();
@@ -17,7 +18,10 @@ const Auth = () => {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
-    password: ''
+    password: '',
+    confirmPassword: '',
+    dob: '',
+    collegeName: ''
   });
 
   const handleInputChange = (e) => {
@@ -38,6 +42,13 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch('http://localhost:5000/api/auth/register', {
         method: 'POST',
@@ -94,7 +105,11 @@ const Auth = () => {
         {/* Sign Up Form */}
         <div className="form-container sign-up">
           <form onSubmit={handleSignup}>
-            <h1 style={{ fontWeight: 'bold', margin: '0' }}>Registration</h1>
+            <div className="auth-logo">
+              <img src={logo} alt="Logo" className="auth-logo-img" />
+              <span className="auth-logo-text">Stuverse</span>
+            </div>
+            <h1>Registration</h1>
             <div className="social-icons">
               <a href="#" className="icon"><GoogleIcon /></a>
               <a href="#" className="icon"><Facebook size={20} fill="#1877F2" color="#1877F2" /></a>
@@ -104,7 +119,12 @@ const Auth = () => {
             <span style={{ fontSize: '12px' }}>or register with social platforms</span>
             <Input type="text" label="Username" id="signup-name" name="username" icon={User} onChange={handleInputChange} value={formData.username} required />
             <Input type="email" label="Email" id="signup-email" name="email" icon={Mail} onChange={handleInputChange} value={formData.email} required />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', width: '100%' }}>
+              <Input type="text" label="College Name" name="collegeName" onChange={handleInputChange} value={formData.collegeName} required />
+              <Input type="date" label="DOB" name="dob" onChange={handleInputChange} value={formData.dob} required />
+            </div>
             <Input type="password" label="Password" id="signup-password" name="password" icon={Lock} onChange={handleInputChange} value={formData.password} required />
+            <Input type="password" label="Re-enter Password" id="signup-confirm" name="confirmPassword" icon={Lock} onChange={handleInputChange} value={formData.confirmPassword} required />
             {error && isActive && <p style={{ color: 'red', fontSize: '12px' }}>{error}</p>}
             <button style={{ marginTop: '10px' }} disabled={loading}>{loading ? 'Registering...' : 'Register'}</button>
           </form>
@@ -113,7 +133,11 @@ const Auth = () => {
         {/* Sign In Form */}
         <div className="form-container sign-in">
           <form onSubmit={handleLogin}>
-            <h1 style={{ fontWeight: 'bold', margin: '0' }}>Sign In</h1>
+            <div className="auth-logo">
+              <img src={logo} alt="Logo" className="auth-logo-img" />
+              <span className="auth-logo-text">Stuverse</span>
+            </div>
+            <h1>Sign In</h1>
             <div className="social-icons">
               <a href="#" className="icon"><GoogleIcon /></a>
               <a href="#" className="icon"><Facebook size={20} fill="#1877F2" color="#1877F2" /></a>

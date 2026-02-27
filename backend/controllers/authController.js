@@ -3,7 +3,7 @@ const { admin, db } = require('../config/firebase');
 // Auth Controller
 exports.register = async (req, res) => {
     try {
-        const { email, password, username } = req.body;
+        const { email, password, username, dob, collegeName, branch, yearOfStudy } = req.body;
 
         // Create user in Firebase Auth
         const userRecord = await admin.auth().createUser({
@@ -16,6 +16,11 @@ exports.register = async (req, res) => {
         await db.collection('users').doc(userRecord.uid).set({
             username,
             email,
+            dob: dob || '',
+            collegeName: collegeName || '',
+            branch: branch || '',
+            yearOfStudy: yearOfStudy || '',
+            location: 'Global Stuverse',
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
         });
 

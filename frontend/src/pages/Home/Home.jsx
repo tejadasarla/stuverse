@@ -1,10 +1,19 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { User, ArrowRight } from 'lucide-react';
 import Navbar from '../../components/Navbar/Navbar';
 import './Home.css';
 
+// Import local assets
+import heroStudents from '../../assets/hero-students.png';
+import mindFlayersImg from '../../assets/mind-flayers.png';
+import artsArtistImg from '../../assets/arts-artist.png';
+import strangerStudiesImg from '../../assets/stranger-studies.png';
+
 const Home = () => {
     const navigate = useNavigate();
+    const { user, userData } = useAuth();
 
     const handleJoinClick = () => {
         navigate('/communities');
@@ -17,17 +26,35 @@ const Home = () => {
             {/* Hero Section */}
             <section className="hero">
                 <div className="hero-content">
+                    {user && (
+                        <div className="welcome-badge" onClick={() => navigate('/profile')}>
+                            <div className="welcome-avatar">
+                                {userData?.username ? userData.username[0].toUpperCase() : 'U'}
+                            </div>
+                            <span className="welcome-text">Welcome back, {userData?.username || 'Student'}!</span>
+                        </div>
+                    )}
                     <h1 className="hero-title">Connect with your Cult</h1>
                     <p className="hero-subtitle">
                         The ultimate community platform for students to connect with like-minded peers,
                         form study groups, and build lifelong friendships based on shared passions.
                     </p>
-                    <button className="get-started-btn" onClick={() => navigate('/signup')}>Get Started &rarr;</button>
+                    <div className="hero-actions">
+                        {!user ? (
+                            <button className="get-started-btn" onClick={() => navigate('/signup')}>
+                                Get Started <ArrowRight size={18} />
+                            </button>
+                        ) : (
+                            <button className="get-started-btn" onClick={() => navigate('/profile')}>
+                                My Dashboard <User size={18} />
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 <div className="hero-images">
                     <div className="hero-card card-1">
-                        <img src="https://images.unsplash.com/photo-1523240715630-6e46307fa914?q=80&w=600&auto=format&fit=crop" alt="Students studying" />
+                        <img src={heroStudents} alt="Students studying" />
                     </div>
                     <div className="hero-card card-2">
                         <img src="https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?q=80&w=600&auto=format&fit=crop" alt="Students laughing" />
@@ -90,7 +117,7 @@ const Home = () => {
                 <div className="communities-grid">
                     <div className="community-card" onClick={() => navigate('/communities')}>
                         <div className="card-image">
-                            <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=400&auto=format&fit=crop" alt="Mind Flayers" />
+                            <img src={mindFlayersImg} alt="Mind Flayers" />
                             <span className="member-count">1.2k Members</span>
                         </div>
                         <div className="card-content">
@@ -107,7 +134,7 @@ const Home = () => {
 
                     <div className="community-card" onClick={() => navigate('/communities')}>
                         <div className="card-image">
-                            <img src="https://images.unsplash.com/photo-1544967082-d9d25d867d66?q=80&w=400&auto=format&fit=crop" alt="The Arts of an Artist" />
+                            <img src={artsArtistImg} alt="The Arts of an Artist" />
                             <span className="member-count">850 Members</span>
                         </div>
                         <div className="card-content">
@@ -124,7 +151,7 @@ const Home = () => {
 
                     <div className="community-card" onClick={() => navigate('/communities')}>
                         <div className="card-image">
-                            <img src="https://images.unsplash.com/photo-1491843384427-bc97b7677b67?q=80&w=400&auto=format&fit=crop" alt="Stranger Studies" />
+                            <img src={strangerStudiesImg} alt="Stranger Studies" />
                             <span className="member-count">3.4k Members</span>
                         </div>
                         <div className="card-content">

@@ -11,10 +11,29 @@
 }
 
 .navbar-logo a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo-img {
+    height: 48px;
+    width: auto;
+    mix-blend-mode: multiply;
+    transition: transform 0.3s ease;
+    display: block;
+}
+
+.logo-text {
     font-family: var(--font-display);
-    font-size: 1.5rem;
-    font-weight: 700;
+    font-size: 1.6rem;
+    font-weight: 800;
     color: var(--secondary);
+    letter-spacing: -0.5px;
+}
+
+.logo-img:hover {
+    transform: scale(1.1) rotate(-5deg);
 }
 
 .navbar-links {
@@ -75,10 +94,66 @@
 
 @media (max-width: 768px) {
     .navbar {
-        padding: 1rem 2rem;
+        padding: 1rem;
+    }
+
+    .navbar-logo a {
+        font-size: 1.2rem;
     }
 
     .nav-pill {
         display: none;
     }
+
+    .navbar-auth {
+        gap: 0.8rem;
+    }
+
+    .login-link {
+        font-size: 0.8rem;
+    }
+
+    .join-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+    }
+
+    .profile-icon-wrapper {
+        width: 32px;
+        height: 32px;
+    }
+}
+
+.profile-icon-wrapper {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.profile-icon-wrapper.guest {
+    background: #e2e8f0;
+    border: 2px dashed #cbd5e1;
+}
+
+.profile-icon-wrapper.guest .user-initials {
+    color: #64748b;
+}
+
+.profile-icon-wrapper:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.user-initials {
+    color: white;
+    font-weight: 700;
+    font-size: 1.1rem;
 }

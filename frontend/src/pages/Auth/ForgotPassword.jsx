@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Mail } from 'lucide-react';
 import Input from '../../components/ui/Input';
 import './Auth.css'; // Use the same styles as Auth page
+import logo from '../../assets/logo.png';
 
 const ForgotPassword = () => {
     const [submitted, setSubmitted] = useState(false);
@@ -22,8 +23,12 @@ const ForgotPassword = () => {
             width: '100%',
             background: 'linear-gradient(to right, #e2e2e2, #c9d6ff)'
         }}>
-            <div className="container" style={{ minHeight: '400px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+            <div className="container" style={{ minHeight: '450px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
                 <div style={{ width: '100%', maxWidth: '400px', textAlign: 'center' }}>
+                    <div className="auth-logo" style={{ marginBottom: '20px' }}>
+                        <img src={logo} alt="Logo" className="auth-logo-img" />
+                        <span className="auth-logo-text">Stuverse</span>
+                    </div>
                     <h1 style={{ fontWeight: 'bold', marginBottom: '10px' }}>Forgot Password</h1>
                     <p style={{ fontSize: '14px', marginBottom: '20px' }}>Enter your email to reset your password</p>
 

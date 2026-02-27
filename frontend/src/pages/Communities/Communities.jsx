@@ -6,62 +6,62 @@ const Communities = () => {
     const [communities, setCommunities] = useState([
         {
             id: 1,
-            name: "Mind Flayers",
+            name: "Inter-College Tech Syndicate",
             banner: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=800&auto=format&fit=crop",
             category: "Tech",
             members: "1.2k",
             admin: "Alex River",
-            description: "A sanctuary for developers, designers, and tech enthusiasts to share code, collaborate on projects, and discuss the latest in tech.",
+            description: "A sanctuary for developers, designers, and tech enthusiasts across all colleges to share code and collaborate.",
             joined: false
         },
         {
             id: 2,
-            name: "The Art Collective",
+            name: "Global Student Art Collective",
             banner: "https://images.unsplash.com/photo-1544967082-d9d25d867d66?q=80&w=800&auto=format&fit=crop",
             category: "Art",
             members: "850",
             admin: "Sarah Chen",
-            description: "From digital art to classical sculpture, we celebrate all forms of creativity. Share your portfolio and get feedback.",
+            description: "Uniting campus artists globally. From digital art to sculpture, share your portfolio and get cross-institution feedback.",
             joined: true
         },
         {
             id: 3,
-            name: "Stranger Studies",
+            name: "Cross-Campus Coding Circle",
             banner: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=800&auto=format&fit=crop",
             category: "Coding",
             members: "3.4k",
             admin: "Dr. Martin",
-            description: "Intense study sessions, research collaboration, and exam prep. Perfect for those looking to excel academically.",
+            description: "Connect with study partners from different universities for research collaboration and exam prep.",
             joined: false
         },
         {
             id: 4,
-            name: "Startup Pulse",
+            name: "Inter-University Startup Pulse",
             banner: "https://images.unsplash.com/photo-1559136555-9303baea8ebd?q=80&w=800&auto=format&fit=crop",
             category: "Startup",
             members: "2.1k",
             admin: "Elena Vance",
-            description: "Where founders meet. Discuss pitch decks, finding co-founders, and scaling your student startup.",
+            description: "Where student founders from all regions meet. Discuss pitch decks and scale your startup beyond your own campus.",
             joined: false
         },
         {
             id: 5,
-            name: "Vocalists & Vibes",
+            name: "The Collegiate Vocalists",
             banner: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?q=80&w=800&auto=format&fit=crop",
             category: "Music",
             members: "1.5k",
             admin: "Jason Derulo",
-            description: "A community for singers, songwriters, and music producers to jam and collaborate on new tracks.",
+            description: "A community for singers and songwriters across colleges to jam and collaborate virtually.",
             joined: false
         },
         {
             id: 6,
-            name: "Elite Athletes",
+            name: "The Multi-Campus Athletics League",
             banner: "https://images.unsplash.com/photo-1517649763962-0c623066013b?q=80&w=800&auto=format&fit=crop",
             category: "Sports",
             members: "5.6k",
             admin: "Coach K",
-            description: "For varsity and intramural athletes. Training tips, game schedules, and sports psychology discussions.",
+            description: "For varsity and intramural athletes to connect for inter-college tournaments and training tips.",
             joined: true
         }
     ]);
@@ -77,8 +77,8 @@ const Communities = () => {
             <Navbar />
 
             <header className="communities-hero">
-                <h1>Explore Communities</h1>
-                <p>Find your tribe and start collaborating with peers who share your passions.</p>
+                <h1>Explore Inter-College Communities</h1>
+                <p>Connect with student tribes across different institutions and start collaborating globally.</p>
             </header>
 
             <main className="communities-container">
