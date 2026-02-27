@@ -13,7 +13,7 @@ import strangerStudiesImg from '../../assets/stranger-studies.png';
 
 const Home = () => {
     const navigate = useNavigate();
-    const { user, userData } = useAuth();
+    const { user, userData, authModal, openAuthModal } = useAuth();
 
     const handleJoinClick = () => {
         navigate('/communities');
@@ -41,7 +41,7 @@ const Home = () => {
                     </p>
                     <div className="hero-actions">
                         {!user ? (
-                            <button className="get-started-btn" onClick={() => navigate('/signup')}>
+                            <button className="get-started-btn" onClick={() => openAuthModal('signup')}>
                                 Get Started <ArrowRight size={18} />
                             </button>
                         ) : (
@@ -127,7 +127,7 @@ const Home = () => {
                             </div>
                             <p>For developers, designers, and tech enthusiasts to share code.</p>
                             <div className="card-footer">
-                                <button className="join-link" onClick={(e) => { e.stopPropagation(); navigate('/login'); }}>Join</button>
+                                <button className="join-link" onClick={(e) => { e.stopPropagation(); openAuthModal('login'); }}>Join</button>
                             </div>
                         </div>
                     </div>
@@ -144,7 +144,7 @@ const Home = () => {
                             </div>
                             <p>Painters, digital artists, and sculptors sharing their portfolio work.</p>
                             <div className="card-footer">
-                                <button className="join-link" onClick={(e) => { e.stopPropagation(); navigate('/login'); }}>Join</button>
+                                <button className="join-link" onClick={(e) => { e.stopPropagation(); openAuthModal('login'); }}>Join</button>
                             </div>
                         </div>
                     </div>
@@ -161,7 +161,7 @@ const Home = () => {
                             </div>
                             <p>Find study partners for exams, assignments, and research.</p>
                             <div className="card-footer">
-                                <button className="join-link" onClick={(e) => { e.stopPropagation(); navigate('/login'); }}>Join</button>
+                                <button className="join-link" onClick={(e) => { e.stopPropagation(); openAuthModal('login'); }}>Join</button>
                             </div>
                         </div>
                     </div>
@@ -178,7 +178,7 @@ const Home = () => {
                             </div>
                             <p>Jam sessions, concert buddies, and music production talk.</p>
                             <div className="card-footer">
-                                <button className="join-link" onClick={(e) => { e.stopPropagation(); navigate('/login'); }}>Join</button>
+                                <button className="join-link" onClick={(e) => { e.stopPropagation(); openAuthModal('login'); }}>Join</button>
                             </div>
                         </div>
                     </div>

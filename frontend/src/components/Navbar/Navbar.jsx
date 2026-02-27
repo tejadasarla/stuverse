@@ -6,7 +6,7 @@ import './Navbar.css';
 import logo from '../../assets/logo.png';
 
 const Navbar = () => {
-    const { user, userData } = useAuth();
+    const { user, userData, openAuthModal } = useAuth();
 
     return (
         <nav className="navbar">
@@ -35,13 +35,13 @@ const Navbar = () => {
                     </Link>
                 ) : (
                     <>
-                        <Link to="/login" className="login-link">Log-in</Link>
-                        <Link to="/signup" className="join-btn">Join Now</Link>
-                        <Link to="/profile" className="profile-link">
+                        <button onClick={() => openAuthModal('login')} className="login-link-btn">Log-in</button>
+                        <button onClick={() => openAuthModal('signup')} className="join-btn-nav">Join Now</button>
+                        <button onClick={() => openAuthModal('login', true)} className="profile-link-btn">
                             <div className="profile-icon-wrapper guest">
                                 <span className="user-initials">P</span>
                             </div>
-                        </Link>
+                        </button>
                     </>
                 )}
             </div>

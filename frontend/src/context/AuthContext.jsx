@@ -48,11 +48,24 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const [authModal, setAuthModal] = useState({ isOpen: false, mode: 'login', restricted: false });
+
+    const openAuthModal = (mode = 'login', restricted = false) => {
+        setAuthModal({ isOpen: true, mode, restricted });
+    };
+
+    const closeAuthModal = () => {
+        setAuthModal({ ...authModal, isOpen: false });
+    };
+
     const value = {
         user,
         userData,
         loading,
-        refreshUserData
+        refreshUserData,
+        authModal,
+        openAuthModal,
+        closeAuthModal
     };
 
     return (

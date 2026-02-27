@@ -71,13 +71,20 @@
     gap: 1.5rem;
 }
 
-.login-link {
+.login-link,
+.login-link-btn {
     font-weight: 600;
     font-size: 0.9rem;
     color: var(--secondary);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 0;
 }
 
-.join-btn {
+.join-btn,
+.join-btn-nav {
     background: var(--secondary);
     color: white;
     padding: 0.7rem 1.5rem;
@@ -85,11 +92,24 @@
     font-weight: 600;
     font-size: 0.9rem;
     transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
 }
 
-.join-btn:hover {
+.join-btn:hover,
+.join-btn-nav:hover {
     background: #002e5e;
     transform: translateY(-2px);
+}
+
+.profile-link-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
 }
 
 @media (max-width: 768px) {

@@ -10,7 +10,7 @@ import Navbar from '../../components/Navbar/Navbar';
 import './Profile.css';
 
 const Profile = () => {
-    const { user, userData, refreshUserData } = useAuth();
+    const { user, userData, refreshUserData, openAuthModal, loading } = useAuth();
     const navigate = useNavigate();
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState({
@@ -160,25 +160,15 @@ const Profile = () => {
         }
     };
 
+    useEffect(() => {
+        if (!user && !loading) {
+            navigate('/');
+            openAuthModal('login', true);
+        }
+    }, [user, loading, navigate, openAuthModal]);
+
     if (!user) {
-        return (
-            <div className="profile-page">
-                <Navbar />
-                <div className="login-required-container">
-                    <div className="login-required-card">
-                        <div className="lock-icon-wrapper">
-                            <X size={40} className="lock-icon" />
-                        </div>
-                        <h2>Profile Access Restricted</h2>
-                        <p>Join our community or log in to view and customize your personal student profile.</p>
-                        <div className="login-required-actions">
-                            <button onClick={() => navigate('/login')} className="login-action-btn primary">Log In Now</button>
-                            <button onClick={() => navigate('/signup')} className="login-action-btn secondary">Create Account</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
+        return null; // The useEffect will handle the redirect
     }
 
     return (
