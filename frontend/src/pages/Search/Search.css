@@ -365,3 +365,131 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Improved Student Card Styles */
+.improved-student-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.5rem;
+    gap: 1.2rem;
+    min-height: 380px;
+    display: flex;
+}
+
+.student-avatar-box {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+}
+
+.improved-student-card .student-avatar {
+    width: 100px;
+    height: 100px;
+}
+
+.improved-student-card .result-info {
+    width: 100%;
+}
+
+.improved-student-card .result-info h3 {
+    font-size: 1.4rem;
+    text-align: center;
+    color: #1e293b;
+    margin-bottom: 2px;
+}
+
+.improved-student-card .college-name {
+    text-align: center;
+    font-weight: 500;
+    color: #64748b;
+    margin-bottom: 1.2rem;
+}
+
+.student-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    background: #f1f5f9;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.detail-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #94a3b8;
+    letter-spacing: 0.5px;
+}
+
+.detail-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #334155;
+}
+
+.interests-tag-box {
+    margin-bottom: 1rem;
+}
+
+.interests-text {
+    font-size: 0.9rem;
+    color: #475569;
+    line-height: 1.4;
+    margin-top: 4px;
+    background: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.common-comm-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+    color: #4f46e5;
+    padding: 10px 15px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    border: 1px solid #c7d2fe;
+}
+
+.common-comm-badge strong {
+    font-size: 1.1rem;
+    color: #4338ca;
+}
+
+.card-actions {
+    width: 100%;
+    margin-top: auto;
+}
+
+.improved-student-card .view-profile-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #6a11cb;
+    color: white;
+    border: none;
+    padding: 12px;
+    font-size: 1rem;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.improved-student-card .view-profile-btn:hover {
+    background: #2575fc;
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(37, 117, 252, 0.2);
+}

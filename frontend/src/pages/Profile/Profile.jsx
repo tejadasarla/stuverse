@@ -19,7 +19,8 @@ const Profile = () => {
         dob: '',
         branch: '',
         yearOfStudy: '',
-        collegeName: ''
+        collegeName: '',
+        interests: ''
     });
     const [updating, setUpdating] = useState(false);
     const [imageFile, setImageFile] = useState(null);
@@ -34,7 +35,8 @@ const Profile = () => {
                 dob: userData.dob || '',
                 branch: userData.branch || '',
                 yearOfStudy: userData.yearOfStudy || '',
-                collegeName: userData.collegeName || ''
+                collegeName: userData.collegeName || '',
+                interests: userData.interests || ''
             });
         }
     }, [userData]);
@@ -144,6 +146,7 @@ const Profile = () => {
                 branch: editData.branch,
                 yearOfStudy: editData.yearOfStudy,
                 collegeName: editData.collegeName,
+                interests: editData.interests,
                 photoURL: photoURL
             }, { merge: true });
             await refreshUserData();
@@ -253,6 +256,13 @@ const Profile = () => {
                                     <div>
                                         <label>Location</label>
                                         <p>{userData?.location || 'Global Stuverse'}</p>
+                                    </div>
+                                </div>
+                                <div className="info-item">
+                                    <Award className="info-icon" style={{ color: '#00d2ff' }} />
+                                    <div>
+                                        <label>Interests</label>
+                                        <p>{userData?.interests || 'Not provided'}</p>
                                     </div>
                                 </div>
                             </div>
@@ -371,6 +381,15 @@ const Profile = () => {
                                     type="text"
                                     value={editData.location}
                                     onChange={(e) => setEditData({ ...editData, location: e.target.value })}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Interests</label>
+                                <textarea
+                                    value={editData.interests}
+                                    placeholder="e.g. Coding, Music, Sports"
+                                    onChange={(e) => setEditData({ ...editData, interests: e.target.value })}
+                                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', minHeight: '80px' }}
                                 />
                             </div>
                             <div className="modal-footer">

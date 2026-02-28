@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../../components/Navbar/Navbar';
+import { useAuth } from '../../context/AuthContext';
+import { db } from '../../firebase.config';
+import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import './Communities.css';
 
 const Communities = () => {
+    const { user, userData, refreshUserData } = useAuth();
     const [communities, setCommunities] = useState([
         {
-            id: 1,
+            id: '1',
             name: "Inter-College Tech Syndicate",
             banner: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=800&auto=format&fit=crop",
             category: "Tech",
@@ -15,17 +19,17 @@ const Communities = () => {
             joined: false
         },
         {
-            id: 2,
+            id: '2',
             name: "Global Student Art Collective",
             banner: "https://images.unsplash.com/photo-1544967082-d9d25d867d66?q=80&w=800&auto=format&fit=crop",
             category: "Art",
             members: "850",
             admin: "Sarah Chen",
             description: "Uniting campus artists globally. From digital art to sculpture, share your portfolio and get cross-institution feedback.",
-            joined: true
+            joined: false
         },
         {
-            id: 3,
+            id: '3',
             name: "Cross-Campus Coding Circle",
             banner: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=800&auto=format&fit=crop",
             category: "Coding",
@@ -35,7 +39,7 @@ const Communities = () => {
             joined: false
         },
         {
-            id: 4,
+            id: '4',
             name: "Inter-University Startup Pulse",
             banner: "https://images.unsplash.com/photo-1559136555-9303baea8ebd?q=80&w=800&auto=format&fit=crop",
             category: "Startup",
@@ -45,7 +49,7 @@ const Communities = () => {
             joined: false
         },
         {
-            id: 5,
+            id: '5',
             name: "The Collegiate Vocalists",
             banner: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?q=80&w=800&auto=format&fit=crop",
             category: "Music",
@@ -55,21 +59,51 @@ const Communities = () => {
             joined: false
         },
         {
-            id: 6,
+            id: '6',
             name: "The Multi-Campus Athletics League",
             banner: "https://images.unsplash.com/photo-1517649763962-0c623066013b?q=80&w=800&auto=format&fit=crop",
             category: "Sports",
             members: "5.6k",
             admin: "Coach K",
             description: "For varsity and intramural athletes to connect for inter-college tournaments and training tips.",
-            joined: true
+            joined: false
         }
     ]);
 
-    const handleJoinToggle = (id) => {
-        setCommunities(communities.map(c =>
-            c.id === id ? { ...c, joined: !c.joined, members: c.joined ? (parseFloat(c.members) - 0.1).toFixed(1) + 'k' : (parseFloat(c.members) + 0.1).toFixed(1) + 'k' } : c
-        ));
+    useEffect(() => {
+        if (userData?.communities) {
+            setCommunities(prev => prev.map(c => ({
+                ...c,
+                joined: userData.communities.includes(c.id)
+            })));
+        }
+    }, [userData]);
+
+    const handleJoinToggle = async (id) => {
+        if (!user) {
+            alert("Please log in to join communities!");
+            return;
+        }
+
+        const community = communities.find(c => c.id === id);
+        const isJoining = !community.joined;
+
+        try {
+            const userRef = doc(db, 'users', user.uid);
+            await updateDoc(userRef, {
+                communities: isJoining ? arrayUnion(id) : arrayRemove(id)
+            });
+
+            // Optimistic update
+            setCommunities(communities.map(c =>
+                c.id === id ? { ...c, joined: isJoining, members: isJoining ? (parseFloat(c.members) + 0.1).toFixed(1) + 'k' : (parseFloat(c.members) - 0.1).toFixed(1) + 'k' } : c
+            ));
+
+            await refreshUserData();
+        } catch (error) {
+            console.error("Error joining community:", error);
+            alert("Failed to join community. Please try again.");
+        }
     };
 
     return (

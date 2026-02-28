@@ -25,12 +25,12 @@ const Search = () => {
 
     // Mock data for channels and events since they are not in DB yet
     const mockChannels = [
-        { id: 1, name: "Inter-College Tech Syndicate", category: "Tech", members: "1.2k" },
-        { id: 2, name: "Global Student Art Collective", category: "Art", members: "850" },
-        { id: 3, name: "Cross-Campus Coding Circle", category: "Coding", members: "3.4k" },
-        { id: 4, name: "Inter-University Startup Pulse", category: "Startup", members: "2.1k" },
-        { id: 5, name: "The Collegiate Vocalists", category: "Music", members: "1.5k" },
-        { id: 6, name: "The Multi-Campus Athletics League", category: "Sports", members: "5.6k" }
+        { id: '1', name: "Inter-College Tech Syndicate", category: "Tech", members: "1.2k" },
+        { id: '2', name: "Global Student Art Collective", category: "Art", members: "850" },
+        { id: '3', name: "Cross-Campus Coding Circle", category: "Coding", members: "3.4k" },
+        { id: '4', name: "Inter-University Startup Pulse", category: "Startup", members: "2.1k" },
+        { id: '5', name: "The Collegiate Vocalists", category: "Music", members: "1.5k" },
+        { id: '6', name: "The Multi-Campus Athletics League", category: "Sports", members: "5.6k" }
     ];
 
     const mockEvents = [
@@ -126,27 +126,57 @@ const Search = () => {
             ) : (
                 <div className="results-grid">
                     {results.students.length > 0 ? (
-                        results.students.map(student => (
-                            <div key={student.id} className="result-card student-card">
-                                <div className="student-avatar" style={{ border: '2px solid #6a11cb' }}>
-                                    {student.photoURL ? (
-                                        <img src={student.photoURL} alt={student.username} />
-                                    ) : (
-                                        <span>{student.username ? student.username[0].toUpperCase() : 'U'}</span>
-                                    )}
-                                </div>
-                                <div className="result-info">
-                                    <h3>{student.username}</h3>
-                                    <p>{student.collegeName || 'Student member'}</p>
-                                    <div className="result-meta">
-                                        <span>{student.branch || 'General'}</span>
+                        results.students.map(student => {
+                            // Calculate common communities
+                            const myCommunities = userData?.communities || [];
+                            const studentCommunities = student.communities || [];
+                            const common = myCommunities.filter(c => studentCommunities.includes(c));
+                            const commonCount = common.length;
+
+                            return (
+                                <div key={student.id} className="result-card student-card improved-student-card">
+                                    <div className="student-avatar-box">
+                                        <div className="student-avatar" style={{ border: '3px solid #6a11cb' }}>
+                                            {student.photoURL ? (
+                                                <img src={student.photoURL} alt={student.username} />
+                                            ) : (
+                                                <span>{student.username ? student.username[0].toUpperCase() : 'U'}</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="result-info">
+                                        <h3>{student.username}</h3>
+                                        <p className="college-name">{student.collegeName || 'Student member'}</p>
+
+                                        <div className="student-details-grid">
+                                            <div className="detail-item">
+                                                <span className="detail-label">Branch:</span>
+                                                <span className="detail-value">{student.branch || 'General'}</span>
+                                            </div>
+                                            <div className="detail-item">
+                                                <span className="detail-label">Year:</span>
+                                                <span className="detail-value">{student.yearOfStudy || 'N/A'}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="interests-tag-box">
+                                            <span className="detail-label">Interests:</span>
+                                            <p className="interests-text">{student.interests || 'No interests listed'}</p>
+                                        </div>
+
+                                        <div className="common-comm-badge">
+                                            <Hash size={14} />
+                                            <span>Common Communities: <strong>{commonCount > 0 ? commonCount : '0'}</strong></span>
+                                        </div>
+                                    </div>
+                                    <div className="card-actions">
+                                        <button className="view-profile-btn" onClick={() => navigate(`/profile/${student.id}`)}>
+                                            View Profile <ArrowRight size={14} />
+                                        </button>
                                     </div>
                                 </div>
-                                <button className="view-profile-btn" onClick={() => navigate(`/profile/${student.id}`)}>
-                                    View <ArrowRight size={14} />
-                                </button>
-                            </div>
-                        ))
+                            );
+                        })
                     ) : (
                         <p className="no-results">No students found matching your year and query.</p>
                     )}
