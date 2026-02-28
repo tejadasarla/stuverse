@@ -6,6 +6,7 @@ import ForgotPassword from './pages/Auth/ForgotPassword';
 import Home from './pages/Home/Home';
 import Communities from './pages/Communities/Communities';
 import Profile from './pages/Profile/Profile';
+import Search from './pages/Search/Search';
 import './App.css';
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
         <Route path="signup" element={<Auth />} />
         <Route path="forgot-password" element={<ForgotPassword />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="search" element={<Search />} />
       </Route>
     </Routes>
   );

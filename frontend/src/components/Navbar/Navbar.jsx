@@ -1,12 +1,21 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { User } from 'lucide-react';
+import { User, Search as SearchIcon } from 'lucide-react';
 import './Navbar.css';
 import logo from '../../assets/logo.png';
 
 const Navbar = () => {
     const { user, userData, openAuthModal } = useAuth();
+    const [searchQuery, setSearchQuery] = useState('');
+    const navigate = useNavigate();
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+        }
+    };
 
     return (
         <nav className="navbar">
@@ -16,6 +25,21 @@ const Navbar = () => {
                     <span className="logo-text">Stuverse</span>
                 </Link>
             </div>
+
+            <div className="navbar-search">
+                <form onSubmit={handleSearch}>
+                    <div className="search-input-wrapper">
+                        <SearchIcon className="search-icon-nav" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Search students, channels, events..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
+                </form>
+            </div>
+
             <div className="navbar-links">
                 <div className="nav-pill">
                     <Link to="/communities">Communities</Link>
