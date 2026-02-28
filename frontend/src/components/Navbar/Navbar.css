@@ -194,6 +194,34 @@
     }
 }
 
+@media (max-width: 480px) {
+    .navbar {
+        padding: 0.8rem;
+        flex-wrap: wrap;
+    }
+
+    .navbar-logo a .logo-text {
+        font-size: 1.2rem;
+    }
+
+    .logo-img {
+        height: 36px;
+    }
+
+    .navbar-auth {
+        gap: 0.5rem;
+    }
+
+    .login-link {
+        font-size: 0.75rem;
+    }
+
+    .join-btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.75rem;
+    }
+}
+
 .profile-icon-wrapper {
     width: 40px;
     height: 40px;

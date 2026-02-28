@@ -11,6 +11,12 @@
   --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
   --font-main: 'Inter', sans-serif;
   --font-display: 'Outfit', sans-serif;
+
+  /* Global Gradients & Radius Styles Added */
+  --primary-gradient: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  --surface-gradient: linear-gradient(135deg, var(--bg-light) 0%, var(--bg-white) 100%);
+  --radius-lg: 30px;
+  --radius-md: 15px;
 }
 
 * {

@@ -58,7 +58,7 @@ body {
 }
 
 .container button {
-    background-color: var(--color-primary);
+    background-color: var(--primary);
     color: #fff;
     font-size: 12px;
     padding: 10px 45px;
@@ -69,6 +69,11 @@ body {
     text-transform: uppercase;
     margin-top: 10px;
     cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.container button:hover {
+    background-color: var(--secondary);
 }
 
 .container button.hidden {
@@ -115,9 +120,9 @@ body {
 }
 
 .input-field:focus {
-    border-color: #512da8 !important;
+    border-color: var(--primary) !important;
     background-color: #ffffff !important;
-    box-shadow: 0 0 0 3px rgba(81, 45, 168, 0.1) !important;
+    box-shadow: 0 0 0 3px rgba(0, 69, 255, 0.1) !important;
 }
 
 .input-icon {
@@ -125,7 +130,7 @@ body {
     right: 12px;
     top: 50%;
     transform: translateY(-50%);
-    color: #512da8;
+    color: var(--primary);
     pointer-events: none;
 }
 
@@ -146,10 +151,10 @@ body {
 .auth-logo-text {
     font-size: 2rem;
     font-weight: 900;
-    color: var(--color-primary);
+    color: var(--primary);
     font-family: 'Montserrat', sans-serif;
     letter-spacing: -1px;
-    background: linear-gradient(to right, #512da8, #301b63);
+    background: var(--primary-gradient);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -239,8 +244,8 @@ body {
 }
 
 .toggle {
-    background-color: var(--color-primary);
-    background: linear-gradient(to right, #5c6bc0, #512da8);
+    background-color: var(--primary);
+    background: var(--primary-gradient);
     color: #fff;
     position: relative;
     left: -100%;
@@ -337,5 +342,19 @@ body {
 
     .input-group {
         margin: 5px 0;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .auth-logo-text {
+        font-size: 1.5rem;
+    }
+
+    .container form {
+        padding: 20px 10px;
+    }
+
+    .container h1 {
+        font-size: 20px;
     }
 }

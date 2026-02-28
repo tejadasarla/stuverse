@@ -166,7 +166,7 @@
 .modal-logo span {
     font-size: 1.5rem;
     font-weight: 800;
-    color: #512da8;
+    color: var(--primary);
 }
 
 .modal-socials {
@@ -189,7 +189,7 @@
 .social-icon:hover {
     background: #f1f5f9;
     transform: translateY(-2px);
-    border-color: #512da8;
+    border-color: var(--primary);
 }
 
 .small-hint {
@@ -199,7 +199,7 @@
 }
 
 .modal-submit-btn {
-    background-color: #512da8;
+    background-color: var(--primary);
     color: #fff;
     font-size: 12px;
     padding: 12px 45px;
@@ -214,9 +214,9 @@
 }
 
 .modal-submit-btn:hover:not(:disabled) {
-    background-color: #3e1f85;
+    background-color: var(--secondary);
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(81, 45, 168, 0.3);
+    box-shadow: 0 5px 15px rgba(0, 69, 255, 0.3);
 }
 
 .modal-error {
@@ -245,8 +245,8 @@
 }
 
 .modal-toggle {
-    background-color: #512da8;
-    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    background-color: var(--primary);
+    background: var(--primary-gradient);
     color: #fff;
     position: relative;
     left: -100%;
@@ -322,7 +322,7 @@
 
 .modal-ghost-btn:hover {
     background-color: #fff;
-    color: #512da8;
+    color: var(--primary);
 }
 
 /* Restricted State Styles */
@@ -363,7 +363,7 @@
 }
 
 .auth-btn-modal.primary {
-    background: #6a11cb;
+    background: var(--primary);
     color: white;
 }
 
@@ -400,8 +400,8 @@
 }
 
 .success-msg {
-    background: #e0e7ff;
-    color: #512da8;
+    background: #eef5ff;
+    color: var(--primary);
     padding: 15px;
     border-radius: 12px;
     margin-bottom: 20px;
@@ -422,7 +422,7 @@
 }
 
 .back-to-login:hover {
-    color: #512da8;
+    color: var(--primary);
 }
 
 @media (max-width: 600px) {
@@ -439,5 +439,19 @@
     .sign-in,
     .sign-up {
         width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-form-side form {
+        padding: 20px 15px;
+    }
+
+    .modal-form-side h1 {
+        font-size: 20px;
+    }
+
+    .auth-modal-card.restricted {
+        padding: 40px 20px;
     }
 }

@@ -39,7 +39,7 @@
 }
 
 .profile-header {
-    background: linear-gradient(to right, #6a11cb 0%, #2575fc 100%);
+    background: var(--primary-gradient);
     padding: 60px 40px;
     display: flex;
     align-items: center;
@@ -51,7 +51,7 @@
     width: 120px;
     height: 120px;
     background: white;
-    color: #6a11cb;
+    color: var(--primary);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -84,8 +84,8 @@
     overflow: hidden;
     position: relative;
     cursor: pointer;
-    border: 3px solid #6a11cb;
-    box-shadow: 0 4px 12px rgba(106, 17, 203, 0.2);
+    border: 3px solid var(--primary);
+    box-shadow: 0 4px 12px rgba(0, 69, 255, 0.2);
 }
 
 .avatar-preview-wrapper img,
@@ -98,7 +98,7 @@
     justify-content: center;
     font-size: 2.5rem;
     font-weight: 700;
-    color: #6a11cb;
+    color: var(--primary);
     background: #f1f5f9;
 }
 
@@ -175,7 +175,7 @@
 }
 
 .info-icon {
-    color: #6a11cb;
+    color: var(--primary);
     width: 24px;
     height: 24px;
 }
@@ -230,7 +230,7 @@
 .stat-card p {
     margin: 5px 0 0 0;
     font-weight: 700;
-    color: #6a11cb;
+    color: var(--primary);
     font-size: 1.2rem;
 }
 
@@ -243,16 +243,16 @@
 .edit-profile-btn {
     padding: 12px 25px;
     border-radius: 12px;
-    border: 1px solid #6a11cb;
+    border: 1px solid var(--primary);
     background: white;
-    color: #6a11cb;
+    color: var(--primary);
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .edit-profile-btn:hover {
-    background: #6a11cb;
+    background: var(--primary);
     color: white;
 }
 
@@ -338,14 +338,14 @@
 }
 
 .login-action-btn.primary {
-    background: #6a11cb;
+    background: var(--primary);
     color: white;
 }
 
 .login-action-btn.primary:hover {
-    background: #5a0eb1;
+    background: var(--secondary);
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(106, 17, 203, 0.2);
+    box-shadow: 0 10px 20px rgba(0, 69, 255, 0.2);
 }
 
 .login-action-btn.secondary {
@@ -410,7 +410,6 @@
 
     .edit-modal {
         padding: 20px;
-        width: 95%;
         border-radius: 15px;
     }
 
@@ -432,6 +431,24 @@
     }
 }
 
+@media (max-width: 480px) {
+    .profile-card {
+        border-radius: 16px;
+    }
+
+    .profile-content {
+        padding: 15px 10px;
+    }
+
+    .edit-modal {
+        width: 100%;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
+        padding: 15px;
+    }
+}
+
 /* Modal and Edit Styles */
 .section-header-flex {
     display: flex;
@@ -448,7 +465,7 @@
     border: none;
     padding: 8px 15px;
     border-radius: 10px;
-    color: #6a11cb;
+    color: var(--primary);
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -574,8 +591,8 @@
 
 .form-group input:focus {
     outline: none;
-    border-color: #6a11cb;
-    box-shadow: 0 0 0 4px rgba(106, 17, 203, 0.1);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(0, 69, 255, 0.1);
 }
 
 .modal-footer {
@@ -610,19 +627,19 @@
     padding: 12px 25px;
     border-radius: 12px;
     border: none;
-    background: linear-gradient(to right, #6a11cb 0%, #2575fc 100%);
+    background: var(--primary-gradient);
     color: white;
     font-weight: 600;
     display: flex;
     align-items: center;
     gap: 8px;
-    box-shadow: 0 4px 12px rgba(106, 17, 203, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 69, 255, 0.2);
     transition: all 0.3s ease;
 }
 
 .save-btn:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(106, 17, 203, 0.3);
+    box-shadow: 0 6px 20px rgba(0, 69, 255, 0.3);
 }
 
 .save-btn:disabled {

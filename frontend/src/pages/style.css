@@ -2,8 +2,7 @@
 
 
 :root {
-    --primary-color: #4a90d5;
-    --secondary-color: #4075c6;
+    /* Using global theme vars primarily */
     --black: #000000;
     --white: #ffffff;
     --gray: #efefef;
@@ -94,7 +93,7 @@ body {
 }
 
 .input-group input:focus {
-    border: 0.125rem solid var(--primary-color);
+    border: 0.125rem solid var(--primary);
 }
 
 .form button {
@@ -103,7 +102,7 @@ body {
     padding: .6rem 0;
     border-radius: .5rem;
     border: none;
-    background-color: var(--primary-color);
+    background-color: var(--primary);
     color: var(--white);
     font-size: 1.2rem;
     outline: none;
@@ -258,7 +257,7 @@ body {
     height: 100vh;
     width: 300vw;
     transform: translate(35%, 0);
-    background-image: linear-gradient(-45deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    background-image: var(--primary-gradient);
     transition: 1s ease-in-out;
     z-index: 6;
     box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;

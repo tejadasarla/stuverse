@@ -7,7 +7,7 @@
 
 /* Adjust for absolute navbar in this project */
 .search-header-bg {
-    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    background: var(--primary-gradient);
     padding: 6rem 2rem 4rem;
     color: white;
     text-align: center;
@@ -50,7 +50,7 @@
 }
 
 .main-search-form button {
-    background: #6a11cb;
+    background: var(--primary);
     color: white;
     border: none;
     padding: 12px 30px;
@@ -62,8 +62,8 @@
 }
 
 .main-search-form button:hover {
-    background: #2575fc;
-    box-shadow: 0 5px 15px rgba(37, 117, 252, 0.3);
+    background: var(--secondary);
+    box-shadow: 0 5px 15px rgba(0, 69, 255, 0.3);
 }
 
 .search-tabs {
@@ -92,7 +92,7 @@
 
 .search-tabs button.active {
     background: white;
-    color: #6a11cb;
+    color: var(--primary);
     font-weight: 700;
 }
 
@@ -248,8 +248,8 @@
 .join-btn-small:hover,
 .view-event-btn:hover {
     background: #f1f5f9;
-    color: #6a11cb;
-    border-color: #6a11cb;
+    color: var(--primary);
+    border-color: var(--primary);
 }
 
 .login-prompt {
@@ -267,7 +267,7 @@
 }
 
 .mini-login-btn {
-    background: #6a11cb;
+    background: var(--primary);
     color: white;
     border: none;
     padding: 8px 25px;
@@ -278,7 +278,7 @@
 }
 
 .mini-login-btn:hover {
-    background: #2575fc;
+    background: var(--secondary);
     transform: scale(1.05);
 }
 
@@ -319,7 +319,7 @@
 .loader-dots span {
     width: 12px;
     height: 12px;
-    background: #6a11cb;
+    background: var(--primary);
     border-radius: 50%;
     animation: bounce 0.6s infinite alternate;
 }
@@ -363,6 +363,47 @@
 
     .results-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .search-header-bg {
+        padding: 6rem 1rem 2rem;
+    }
+
+    .results-wrapper {
+        padding: 1rem;
+    }
+
+    .main-search-form {
+        flex-direction: column;
+        border-radius: 12px;
+        background: transparent;
+        box-shadow: none;
+        padding: 0;
+    }
+
+    .main-search-form input {
+        background: white;
+        width: 100%;
+        padding: 12px 20px;
+        border-radius: 12px;
+        margin-bottom: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .main-search-icon {
+        display: none;
+    }
+
+    .main-search-form button {
+        width: 100%;
+        margin-left: 0;
+        border-radius: 12px;
+    }
+
+    .improved-student-card {
+        padding: 1rem;
     }
 }
 
@@ -455,17 +496,17 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
-    color: #4f46e5;
+    background: linear-gradient(135deg, #eef5ff 0%, #ffffff 100%);
+    color: var(--primary);
     padding: 10px 15px;
     border-radius: 12px;
     font-size: 0.9rem;
-    border: 1px solid #c7d2fe;
+    border: 1px solid rgba(0, 69, 255, 0.2);
 }
 
 .common-comm-badge strong {
     font-size: 1.1rem;
-    color: #4338ca;
+    color: var(--secondary);
 }
 
 .card-actions {
@@ -479,7 +520,7 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    background: #6a11cb;
+    background: var(--primary);
     color: white;
     border: none;
     padding: 12px;
@@ -489,7 +530,7 @@
 }
 
 .improved-student-card .view-profile-btn:hover {
-    background: #2575fc;
+    background: var(--secondary);
     transform: scale(1.02);
-    box-shadow: 0 4px 12px rgba(37, 117, 252, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 69, 255, 0.2);
 }

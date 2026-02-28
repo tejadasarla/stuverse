@@ -6,7 +6,7 @@
 
 .communities-hero {
     padding: 120px 20px 80px;
-    background: linear-gradient(135deg, #eef5ff 0%, #ffffff 100%);
+    background: var(--surface-gradient);
     color: var(--secondary);
     text-align: center;
 }
@@ -103,13 +103,13 @@
 .comm-name {
     font-family: 'Outfit', sans-serif;
     font-size: 1.4rem;
-    color: #001f3f;
+    color: var(--secondary);
     margin: 0;
 }
 
 .comm-members {
     font-size: 0.9rem;
-    color: #0045ff;
+    color: var(--primary);
     font-weight: 600;
 }
 
@@ -151,7 +151,7 @@
     padding: 12px;
     border-radius: 12px;
     border: none;
-    background: #0045ff;
+    background: var(--primary);
     color: white;
     font-weight: 600;
     font-size: 1rem;
@@ -159,7 +159,7 @@
 }
 
 .comm-join-btn:hover {
-    background: #0037cc;
+    background: var(--secondary);
     box-shadow: 0 4px 15px rgba(0, 69, 255, 0.3);
 }
 
@@ -192,5 +192,19 @@
 
     .comm-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .comm-info {
+        padding: 20px 15px;
+    }
+
+    .comm-name {
+        font-size: 1.25rem;
+    }
+
+    .comm-card {
+        border-radius: 16px;
     }
 }
