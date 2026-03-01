@@ -29,7 +29,7 @@ const Navbar = () => {
             <div className="navbar-search">
                 <form onSubmit={handleSearch}>
                     <div className="search-input-wrapper">
-                        <SearchIcon className="search-icon-nav" size={18} />
+                        <SearchIcon className="search-icon-nav" size={22} />
                         <input
                             type="text"
                             placeholder="Search students, channels, events..."
