@@ -8,6 +8,7 @@
     left: 0;
     right: 0;
     z-index: 1000;
+    gap: 2rem;
 }
 
 .navbar-logo a {
@@ -85,6 +86,7 @@
 .navbar-links {
     display: flex;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .nav-pill {
@@ -115,6 +117,7 @@
     display: flex;
     align-items: center;
     gap: 1.5rem;
+    flex-shrink: 0;
 }
 
 .login-link,
@@ -127,6 +130,7 @@
     cursor: pointer;
     font-family: inherit;
     padding: 0;
+    white-space: nowrap;
 }
 
 .join-btn,
@@ -141,6 +145,7 @@
     border: none;
     cursor: pointer;
     font-family: inherit;
+    white-space: nowrap;
 }
 
 .join-btn:hover,
@@ -156,6 +161,28 @@
     cursor: pointer;
     display: flex;
     align-items: center;
+}
+
+@media (max-width: 1100px) {
+    .navbar {
+        padding: 1.5rem 2rem;
+        gap: 1rem;
+    }
+
+    .navbar-search {
+        margin: 0 1rem;
+    }
+
+    .nav-pill {
+        gap: 1rem;
+        padding: 0.5rem 0.8rem;
+    }
+}
+
+@media (max-width: 950px) {
+    .navbar-search {
+        display: none;
+    }
 }
 
 @media (max-width: 768px) {
