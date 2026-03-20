@@ -2,13 +2,17 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1.5rem 3rem;
-    position: absolute;
+    padding: 1rem 3rem;
+    position: sticky;
     top: 0;
     left: 0;
     right: 0;
     z-index: 1000;
     gap: 1.5rem;
+    background: rgba(248, 250, 252, 0.95); /* Light Slate Grey / White */
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
 }
 
 .navbar-logo a {
@@ -92,22 +96,23 @@
 }
 
 .nav-pill {
-    background: rgba(255, 255, 255, 0.4);
+    background: #f1f5f9; /* Light grey/slate */
     backdrop-filter: blur(10px);
-    padding: 0.5rem 1rem;
+    padding: 0.4rem 0.8rem;
     border-radius: 50px;
     display: flex;
-    gap: 1.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    gap: 0.8rem;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
 .nav-pill a {
-    font-size: 0.95rem;
-    font-weight: 500;
-    color: var(--text-main);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--secondary); /* Using secondary color which is dark */
     transition: all 0.3s ease;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
+    padding: 0.6rem 1.2rem;
+    border-radius: 50px;
 }
 
 .nav-pill a:hover {
@@ -120,6 +125,38 @@
     align-items: center;
     gap: 1.5rem;
     flex-shrink: 0;
+}
+
+.user-nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+}
+
+.nav-chat-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #7000ff 0%, #00d2ff 100%);
+    border-radius: 50px;
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 4px 15px rgba(112, 0, 255, 0.2);
+}
+
+.nav-chat-btn:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 20px rgba(112, 0, 255, 0.3);
+    color: white;
+}
+
+.chat-btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .login-link,

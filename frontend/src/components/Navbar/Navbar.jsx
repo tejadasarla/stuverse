@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { User, Search as SearchIcon } from 'lucide-react';
+import { User, Search as SearchIcon, MessageSquare } from 'lucide-react';
 import './Navbar.css';
 import logo from '../../assets/logo.png';
 
