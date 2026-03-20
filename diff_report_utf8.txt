@@ -1,0 +1,72 @@
+﻿MODIFIED: \.gitignore
+MODIFIED: \package-lock.json
+MODIFIED: \package.json
+MODIFIED: \backend\.gitignore
+MODIFIED: \backend\index.js
+MODIFIED: \backend\package-lock.json
+MODIFIED: \backend\package.json
+MODIFIED: \backend\config\firebase.js
+MODIFIED: \backend\controllers\authController.js
+MODIFIED: \backend\routes\authRoutes.js
+MODIFIED: \frontend\.gitignore
+MODIFIED: \frontend\eslint.config.js
+MODIFIED: \frontend\index.html
+MODIFIED: \frontend\package-lock.json
+MODIFIED: \frontend\package.json
+MODIFIED: \frontend\README.md
+MODIFIED: \frontend\vite.config.js
+MODIFIED: \frontend\src\App.css
+MODIFIED: \frontend\src\App.jsx
+MODIFIED: \frontend\src\firebase.config.js
+MODIFIED: \frontend\src\index.css
+MODIFIED: \frontend\src\main.jsx
+MODIFIED: \frontend\src\components\AuthModal\AuthModal.css
+MODIFIED: \frontend\src\components\AuthModal\AuthModal.jsx
+MODIFIED: \frontend\src\components\Navbar\Navbar.css
+MODIFIED: \frontend\src\components\Navbar\Navbar.jsx
+MODIFIED: \frontend\src\components\ui\Button.jsx
+MODIFIED: \frontend\src\components\ui\Input.jsx
+MODIFIED: \frontend\src\components\ui\ui.css
+MODIFIED: \frontend\src\context\AuthContext.jsx
+MODIFIED: \frontend\src\pages\style.css
+NEW IN UPDATED: \frontend\src\pages\About\About.css
+NEW IN UPDATED: \frontend\src\pages\About\About.jsx
+MODIFIED: \frontend\src\pages\Auth\Auth.css
+MODIFIED: \frontend\src\pages\Auth\Auth.jsx
+MODIFIED: \frontend\src\pages\Auth\ForgotPassword.jsx
+NEW IN UPDATED: \frontend\src\pages\Colleges\Colleges.css
+NEW IN UPDATED: \frontend\src\pages\Colleges\Colleges.jsx
+MODIFIED: \frontend\src\pages\Communities\Communities.css
+MODIFIED: \frontend\src\pages\Communities\Communities.jsx
+NEW IN UPDATED: \frontend\src\pages\Communities\CommunityChat.css
+NEW IN UPDATED: \frontend\src\pages\Communities\CommunityChat.jsx
+NEW IN UPDATED: \frontend\src\pages\Events\Events.css
+NEW IN UPDATED: \frontend\src\pages\Events\Events.jsx
+MODIFIED: \frontend\src\pages\Home\Home.css
+MODIFIED: \frontend\src\pages\Home\Home.jsx
+MODIFIED: \frontend\src\pages\Layout\Layout.jsx
+MODIFIED: \frontend\src\pages\Profile\Profile.css
+MODIFIED: \frontend\src\pages\Profile\Profile.jsx
+MODIFIED: \frontend\src\pages\Search\Search.css
+MODIFIED: \frontend\src\pages\Search\Search.jsx
+ONLY IN CURRENT: \backend\.env
+ONLY IN CURRENT: \backend\.env.example
+ONLY IN CURRENT: \backend\models\.gitkeep
+ONLY IN CURRENT: \frontend\.env
+ONLY IN CURRENT: \frontend\.env.example
+ONLY IN CURRENT: \frontend\vercel.json
+ONLY IN CURRENT: \frontend\dist\index.html
+ONLY IN CURRENT: \frontend\dist\logo.png
+ONLY IN CURRENT: \frontend\dist\vite.svg
+ONLY IN CURRENT: \frontend\dist\assets\arts-artist-B437aTEZ.png
+ONLY IN CURRENT: \frontend\dist\assets\hero-students-DT_KR-YB.png
+ONLY IN CURRENT: \frontend\dist\assets\index-DakGdElD.css
+ONLY IN CURRENT: \frontend\dist\assets\index-NgyJw-3d.js
+ONLY IN CURRENT: \frontend\dist\assets\logo-D6j52WCN.png
+ONLY IN CURRENT: \frontend\dist\assets\mind-flayers-B5gbHeF7.png
+ONLY IN CURRENT: \frontend\dist\assets\stranger-studies-Vftrq230.png
+ONLY IN CURRENT: \frontend\src\components\CreateChannelModal\.gitkeep
+ONLY IN CURRENT: \frontend\src\components\CreateCommunityModal\.gitkeep
+ONLY IN CURRENT: \frontend\src\pages\Chat\.gitkeep
+ONLY IN CURRENT: \frontend\src\pages\CommunityDashboard\.gitkeep
+ONLY IN CURRENT: \frontend\src\pages\TribeChat\.gitkeep

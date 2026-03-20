@@ -6,7 +6,6 @@ import { signOut } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../../components/Navbar/Navbar';
 import './Profile.css';
 
 const Profile = () => {
@@ -15,10 +14,12 @@ const Profile = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState({
         username: '',
+        fullName: '',
         location: 'Global Stuverse',
         dob: '',
         branch: '',
         yearOfStudy: '',
+        academicYears: '',
         collegeName: '',
         interests: ''
     });
@@ -31,10 +32,12 @@ const Profile = () => {
         if (userData) {
             setEditData({
                 username: userData.username || '',
+                fullName: userData.fullName || '',
                 location: userData.location || 'Global Stuverse',
                 dob: userData.dob || '',
                 branch: userData.branch || '',
                 yearOfStudy: userData.yearOfStudy || '',
+                academicYears: userData.academicYears || '',
                 collegeName: userData.collegeName || '',
                 interests: userData.interests || ''
             });
@@ -141,10 +144,12 @@ const Profile = () => {
             const userRef = doc(db, 'users', user.uid);
             await setDoc(userRef, {
                 username: editData.username,
+                fullName: editData.fullName,
                 location: editData.location,
                 dob: editData.dob,
                 branch: editData.branch,
                 yearOfStudy: editData.yearOfStudy,
+                academicYears: editData.academicYears,
                 collegeName: editData.collegeName,
                 interests: editData.interests,
                 photoURL: photoURL
@@ -176,7 +181,6 @@ const Profile = () => {
 
     return (
         <div className="profile-page">
-            <Navbar />
             <div className="profile-page-wrapper">
                 <div className="profile-card">
                     <div className="profile-header">
@@ -206,6 +210,13 @@ const Profile = () => {
                                     <User className="info-icon" />
                                     <div>
                                         <label>Full Name</label>
+                                        <p>{userData?.fullName || 'Not provided'}</p>
+                                    </div>
+                                </div>
+                                <div className="info-item">
+                                    <User className="info-icon" />
+                                    <div>
+                                        <label>Username</label>
                                         <p>{userData?.username || 'Not provided'}</p>
                                     </div>
                                 </div>
@@ -247,8 +258,15 @@ const Profile = () => {
                                 <div className="info-item">
                                     <Calendar className="info-icon" />
                                     <div>
+                                        <label>Academic Years</label>
+                                        <p>{userData?.academicYears || 'Not provided'}</p>
+                                    </div>
+                                </div>
+                                <div className="info-item">
+                                    <Calendar className="info-icon" />
+                                    <div>
                                         <label>Date of Birth</label>
-                                        <p>{userData?.dob || 'Not provided'}</p>
+                                        <p>{userData?.dob ? userData.dob.split('-').reverse().join('/') : 'Not provided'}</p>
                                     </div>
                                 </div>
                                 <div className="info-item">
@@ -343,6 +361,15 @@ const Profile = () => {
                                 />
                             </div>
                             <div className="form-group">
+                                <label>Full Name</label>
+                                <input
+                                    type="text"
+                                    value={editData.fullName}
+                                    placeholder="e.g. John Doe"
+                                    onChange={(e) => setEditData({ ...editData, fullName: e.target.value })}
+                                />
+                            </div>
+                            <div className="form-group">
                                 <label>College Name</label>
                                 <input
                                     type="text"
@@ -365,6 +392,15 @@ const Profile = () => {
                                     value={editData.yearOfStudy}
                                     placeholder="e.g. 3rd Year"
                                     onChange={(e) => setEditData({ ...editData, yearOfStudy: e.target.value })}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Academic Years</label>
+                                <input
+                                    type="text"
+                                    value={editData.academicYears}
+                                    placeholder="e.g. 2020-2024"
+                                    onChange={(e) => setEditData({ ...editData, academicYears: e.target.value })}
                                 />
                             </div>
                             <div className="form-group">

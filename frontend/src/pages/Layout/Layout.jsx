@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import AuthModal from '../../components/AuthModal/AuthModal';
+import Navbar from '../../components/Navbar/Navbar';
 import { useAuth } from '../../context/AuthContext';
 
 const Layout = () => {
@@ -8,6 +9,7 @@ const Layout = () => {
 
     return (
         <div className="layout-container" style={{ minWidth: '100%', minHeight: '100vh' }}>
+            <Navbar />
             <Outlet />
             <AuthModal
                 isOpen={authModal.isOpen}

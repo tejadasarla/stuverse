@@ -4,7 +4,6 @@ import { db } from '../../firebase.config';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { useAuth } from '../../context/AuthContext';
 import { Search as SearchIcon, Users, Calendar, Hash, ArrowRight } from 'lucide-react';
-import Navbar from '../../components/Navbar/Navbar';
 import './Search.css';
 
 const Search = () => {
@@ -169,7 +168,7 @@ const Search = () => {
                                             <span>Common Communities: <strong>{commonCount > 0 ? commonCount : '0'}</strong></span>
                                         </div>
                                     </div>
-                                    <div className="card-actions">
+                                    <div className="result-actions">
                                         <button className="view-profile-btn" onClick={() => navigate(`/profile/${student.id}`)}>
                                             View Profile <ArrowRight size={14} />
                                         </button>
@@ -250,9 +249,9 @@ const Search = () => {
     );
 
     return (
-        <div className="search-page">
-            <Navbar />
+        <div className="search-page-container">
 
+            {/* Search Hero */}
             <div className="search-header-bg">
                 <div className="search-container">
                     <form onSubmit={handleSearchSubmit} className="main-search-form">

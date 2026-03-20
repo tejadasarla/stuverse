@@ -2,7 +2,6 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { User, ArrowRight } from 'lucide-react';
-import Navbar from '../../components/Navbar/Navbar';
 import './Home.css';
 
 // Import local assets
@@ -21,7 +20,6 @@ const Home = () => {
 
     return (
         <div className="home-container">
-            <Navbar />
 
             {/* Hero Section */}
             <section className="hero">
@@ -72,7 +70,7 @@ const Home = () => {
             <section className="features-section">
                 <div className="section-header">
                     <h2>More than just a platform</h2>
-                    <p>We believe that college life is better when you're connected. Our mission is to bridge the gap between students across campus with similar interests.</p>
+                    <p>We believe that college life is better when you're connected. Our mission is to bridge the gap between students across different campuses with similar interests.</p>
                 </div>
 
                 <div className="features-grid">

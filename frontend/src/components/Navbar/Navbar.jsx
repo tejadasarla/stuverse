@@ -44,7 +44,7 @@ const Navbar = () => {
                 <div className="nav-pill">
                     <Link to="/communities">Communities</Link>
                     <Link to="/events">Events</Link>
-                    <Link to="/mentorship">Mentorship</Link>
+                    <Link to="/colleges">Colleges</Link>
                     <Link to="/about">About</Link>
                 </div>
             </div>

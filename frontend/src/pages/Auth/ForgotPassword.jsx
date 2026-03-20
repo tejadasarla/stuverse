@@ -33,58 +33,53 @@ const ForgotPassword = () => {
         <div style={{
             display: 'flex',
             justifyContent: 'center',
-            alignItems: 'flex-start',
+            alignItems: 'center',
             minHeight: '100vh',
             width: '100%',
-            padding: '40px 20px',
-            boxSizing: 'border-box',
-            background: 'linear-gradient(to right, #e2e2e2, #c9d6ff)',
-            overflowY: 'auto'
+            background: 'linear-gradient(to right, #e2e2e2, #c9d6ff)'
         }}>
-            <div style={{ margin: 'auto', display: 'flex', justifyContent: 'center', width: '100%' }}>
-                <div className="container" style={{ minHeight: '450px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-                    <div style={{ width: '100%', maxWidth: '400px', textAlign: 'center' }}>
-                        <div className="auth-logo" style={{ marginBottom: '20px' }}>
-                            <img src={logo} alt="Logo" className="auth-logo-img" />
-                            <span className="auth-logo-text">Stuverse</span>
-                        </div>
-                        <h1 style={{ fontWeight: 'bold', marginBottom: '10px' }}>Forgot Password</h1>
-                        <p style={{ fontSize: '14px', marginBottom: '20px' }}>Enter your email to reset your password</p>
+            <div className="container" style={{ minHeight: '450px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+                <div style={{ width: '100%', maxWidth: '400px', textAlign: 'center' }}>
+                    <div className="auth-logo" style={{ marginBottom: '20px' }}>
+                        <img src={logo} alt="Logo" className="auth-logo-img" />
+                        <span className="auth-logo-text">Stuverse</span>
+                    </div>
+                    <h1 style={{ fontWeight: 'bold', marginBottom: '10px' }}>Forgot Password</h1>
+                    <p style={{ fontSize: '14px', marginBottom: '20px' }}>Enter your email to reset your password</p>
 
-                        {!submitted ? (
-                            <form onSubmit={handleSubmit} style={{ padding: '0', background: 'transparent' }}>
-                                <Input
-                                    id="email"
-                                    label="Email Address"
-                                    type="email"
-                                    icon={Mail}
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    required
-                                />
+                    {!submitted ? (
+                        <form onSubmit={handleSubmit} style={{ padding: '0', background: 'transparent' }}>
+                            <Input
+                                id="email"
+                                label="Email Address"
+                                type="email"
+                                icon={Mail}
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                            />
 
-                                {error && <p style={{ color: 'red', fontSize: '12px', marginTop: '10px' }}>{error}</p>}
+                            {error && <p style={{ color: 'red', fontSize: '12px', marginTop: '10px' }}>{error}</p>}
 
-                                <button style={{ marginTop: '20px', width: '100%' }} disabled={loading}>
-                                    {loading ? 'Sending...' : 'Send Reset Link'}
-                                </button>
-                            </form>
-                        ) : (
-                            <div style={{ textAlign: 'center' }}>
-                                <div style={{ background: '#e0e7ff', color: '#512da8', padding: '15px', borderRadius: '8px', marginBottom: '20px', fontSize: '14px' }}>
-                                    We've sent a password reset link to your email.
-                                </div>
-                                <button onClick={() => setSubmitted(false)} className="hidden" style={{ color: '#333', borderColor: '#ccc', width: '100%' }}>
-                                    Try another email
-                                </button>
+                            <button style={{ marginTop: '20px', width: '100%' }} disabled={loading}>
+                                {loading ? 'Sending...' : 'Send Reset Link'}
+                            </button>
+                        </form>
+                    ) : (
+                        <div style={{ textAlign: 'center' }}>
+                            <div style={{ background: '#e0e7ff', color: '#512da8', padding: '15px', borderRadius: '8px', marginBottom: '20px', fontSize: '14px' }}>
+                                We've sent a password reset link to your email.
                             </div>
-                        )}
-
-                        <div style={{ marginTop: '20px' }}>
-                            <Link to="/login" style={{ fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
-                                <span>←</span> Back to Login
-                            </Link>
+                            <button onClick={() => setSubmitted(false)} className="hidden" style={{ color: '#333', borderColor: '#ccc', width: '100%' }}>
+                                Try another email
+                            </button>
                         </div>
+                    )}
+
+                    <div style={{ marginTop: '20px' }}>
+                        <Link to="/login" style={{ fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
+                            <span>←</span> Back to Login
+                        </Link>
                     </div>
                 </div>
             </div>

@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Mail, Lock, User, Github, Linkedin, ArrowLeft } from 'lucide-react';
-import { auth, db } from '../../firebase.config';
-import { signInWithEmailAndPassword, sendPasswordResetEmail, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { auth } from '../../firebase.config';
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import Input from '../ui/Input';
 import logo from '../../assets/logo.png';
@@ -78,21 +77,13 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login', triggerRestricted =
         }
 
         try {
-            const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-            const user = userCredential.user;
-
-            await updateProfile(user, { displayName: formData.username });
-
-            await setDoc(doc(db, 'users', user.uid), {
-                username: formData.username,
-                email: formData.email,
-                dob: '',
-                collegeName: formData.collegeName || '',
-                branch: '',
-                yearOfStudy: '',
-                location: 'Global Stuverse',
-                createdAt: serverTimestamp()
+            const response = await fetch('http://localhost:5000/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData),
             });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Registration failed');
             setIsSignUp(false);
             setError('Registration successful! Please sign in.');
         } catch (err) {

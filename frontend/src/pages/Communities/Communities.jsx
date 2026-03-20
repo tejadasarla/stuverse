@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Navbar from '../../components/Navbar/Navbar';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { db } from '../../firebase.config';
 import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
@@ -7,6 +7,7 @@ import './Communities.css';
 
 const Communities = () => {
     const { user, userData, refreshUserData } = useAuth();
+    const navigate = useNavigate();
     const [communities, setCommunities] = useState([
         {
             id: '1',
@@ -100,6 +101,10 @@ const Communities = () => {
             ));
 
             await refreshUserData();
+
+            if (isJoining) {
+                navigate(`/communities/${id}`);
+            }
         } catch (error) {
             console.error("Error joining community:", error);
             alert("Failed to join community. Please try again.");
@@ -108,7 +113,6 @@ const Communities = () => {
 
     return (
         <div className="communities-page">
-            <Navbar />
 
             <header className="communities-hero">
                 <h1>Explore Inter-College Communities</h1>
@@ -143,9 +147,15 @@ const Communities = () => {
                                 <div className="comm-actions">
                                     <button
                                         className={`comm-join-btn ${community.joined ? 'joined' : ''}`}
-                                        onClick={() => handleJoinToggle(community.id)}
+                                        onClick={() => {
+                                            if (community.joined) {
+                                                navigate(`/communities/${community.id}`);
+                                            } else {
+                                                handleJoinToggle(community.id);
+                                            }
+                                        }}
                                     >
-                                        {community.joined ? 'Joined' : 'Join Community'}
+                                        {community.joined ? 'Open Chat' : 'Join Community'}
                                     </button>
                                 </div>
                             </div>
@@ -158,3 +168,4 @@ const Communities = () => {
 };
 
 export default Communities;
+
