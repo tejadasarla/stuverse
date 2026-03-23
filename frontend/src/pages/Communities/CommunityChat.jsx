@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { db } from '../../firebase.config';
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, arrayUnion, where, deleteDoc, increment } from 'firebase/firestore';
-import { Send, ArrowLeft, Hash, Users, Image as ImageIcon, Smile, Bell, MoreVertical, Plus, Trash2, UserMinus, LogOut, Info } from 'lucide-react';
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, arrayUnion, arrayRemove, where, deleteDoc, increment } from 'firebase/firestore';
+import { Send, ArrowLeft, Hash, Users, Image as ImageIcon, Smile, Bell, MoreVertical, Plus, Trash2, UserMinus, LogOut, Info, X } from 'lucide-react';
+import EmojiPicker from 'emoji-picker-react';
 import './CommunityChat.css';
 
 // Community Chat Component
@@ -29,6 +30,8 @@ const CommunityChat = () => {
     const [newGroupName, setNewGroupName] = useState('');
     const [newGroupDesc, setNewGroupDesc] = useState('');
     const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const emojiPickerRef = useRef(null);
 
     const isJoined = userData?.communities?.includes(id) || currentCommunity?.adminId === user?.uid;
 
@@ -188,6 +191,15 @@ const CommunityChat = () => {
         const unsub = syncSidebar();
         return () => { if (typeof unsub === 'function') unsub(); };
     }, [user, userData?.communities, id, navigate]);
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
+                setShowEmojiPicker(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     // 6. Fetch messages for the active group
     useEffect(() => {
@@ -367,7 +379,9 @@ const CommunityChat = () => {
                 description: newGroupDesc.trim(),
                 type: 'chat',
                 createdAt: serverTimestamp(),
-                createdBy: user.uid
+                createdBy: user.uid,
+                members: [user.uid],
+                pendingRequests: []
             });
             setIsGroupModalOpen(false);
             setNewGroupName('');
@@ -383,6 +397,115 @@ const CommunityChat = () => {
             setIsCreatingGroup(false);
         }
     };
+    const handleDeleteGroup = async (groupId, groupName) => {
+        if (groups.length <= 1) {
+            alert("A community must have at least one group.");
+            return;
+        }
+
+        if (!window.confirm(`Are you sure you want to delete the group "${groupName}"? All messages in this group will be lost.`)) {
+            return;
+        }
+
+        try {
+            await deleteDoc(doc(db, 'communities', id, 'groups', groupId));
+            if (activeGroupId === groupId) {
+                const otherGroup = groups.find(g => g.id !== groupId);
+                if (otherGroup) setActiveGroupId(otherGroup.id);
+            }
+        } catch (error) {
+            console.error("Error deleting group:", error);
+            alert("Failed to delete group.");
+        }
+    };
+
+    const handleRequestToJoinGroup = async () => {
+        if (!user || !activeGroupId || !id) return;
+        try {
+            const groupRef = doc(db, 'communities', id, 'groups', activeGroupId);
+            await updateDoc(groupRef, {
+                pendingRequests: arrayUnion(user.uid)
+            });
+            alert("Request sent to admin!");
+        } catch (error) {
+            console.error("Error sending join request:", error);
+            if (error.code === 'permission-denied') {
+                alert("Permission Denied: You don't have permission to request to join this group yet. Please check your Firestore Security Rules.");
+            } else {
+                alert("Failed to send request: " + error.message);
+            }
+        }
+    };
+
+    const handleExitGroup = async () => {
+        if (!activeGroup || !activeGroupId || !id || !user) return;
+        if (!window.confirm(`Are you sure you want to exit the group "${activeGroup.name}"?`)) return;
+
+        try {
+            const groupRef = doc(db, 'communities', id, 'groups', activeGroupId);
+            await updateDoc(groupRef, {
+                members: arrayRemove(user.uid)
+            });
+            alert(`Success: You have left "${activeGroup.name}".`);
+        } catch (error) {
+            console.error("Error exiting group:", error);
+            alert(`Failed to exit group: ${error.message}`);
+        }
+    };
+
+    const handleApproveGroupRequest = async (userId) => {
+        if (!user || !activeGroupId || !id) return;
+        try {
+            const groupRef = doc(db, 'communities', id, 'groups', activeGroupId);
+            await updateDoc(groupRef, {
+                members: arrayUnion(userId),
+                pendingRequests: arrayRemove(userId)
+            });
+            alert("User approved!");
+        } catch (error) {
+            console.error("Error approving user:", error);
+            alert(`Failed to approve user: ${error.message}`);
+        }
+    };
+
+    const handleRejectGroupRequest = async (userId) => {
+        if (!user || !activeGroupId || !id) return;
+        try {
+            const groupRef = doc(db, 'communities', id, 'groups', activeGroupId);
+            await updateDoc(groupRef, {
+                pendingRequests: arrayRemove(userId)
+            });
+            alert("Request rejected.");
+        } catch (error) {
+            console.error("Error rejecting user:", error);
+            alert(`Failed to reject user: ${error.message}`);
+        }
+    };
+
+    const handleRemoveGroupMember = async (userId) => {
+        if (!user || !activeGroupId || !id) return;
+        if (userId === currentCommunity.adminId) {
+            alert("Default admin cannot be removed.");
+            return;
+        }
+        if (!window.confirm("Remove this member from the group?")) return;
+        try {
+            const groupRef = doc(db, 'communities', id, 'groups', activeGroupId);
+            await updateDoc(groupRef, {
+                members: arrayRemove(userId)
+            });
+            alert("Member removed.");
+        } catch (error) {
+            console.error("Error removing member:", error);
+            alert(`Failed to remove member: ${error.message}`);
+        }
+    };
+
+    const onEmojiClick = (emojiData) => {
+        setNewMessage(prev => prev + emojiData.emoji);
+    };
+
+    const [activeTab, setActiveTab] = useState('chat'); // 'chat' or 'manage'
 
     return (
         <div className="chat-layout">
@@ -429,10 +552,22 @@ const CommunityChat = () => {
 
             {/* Sidebar 2: Groups (Channel List) */}
             <div className="groups-sidebar">
-                <div className="groups-header">
+                <div 
+                    className="groups-header" 
+                    onClick={() => navigate(`/communities/${id}/settings`)} 
+                    style={{ cursor: 'pointer' }}
+                    title="Community Settings"
+                >
                     <h3>{currentCommunity.name}</h3>
-                    {currentCommunity.adminId === user?.uid && (
-                        <button className="add-group-btn" title="Create Group" onClick={() => setIsGroupModalOpen(true)}>
+                    {(currentCommunity.adminId === user?.uid || currentCommunity.admins?.includes(user?.uid)) && (
+                        <button 
+                            className="add-group-btn" 
+                            title="Create Group" 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsGroupModalOpen(true);
+                            }}
+                        >
                             <Plus size={18} />
                         </button>
                     )}
@@ -442,14 +577,27 @@ const CommunityChat = () => {
                     <div className="groups-section">
                         <span className="section-title">CHANNELS</span>
                         {groups.map(group => (
-                            <button 
-                                key={group.id} 
-                                className={`group-item ${activeGroupId === group.id ? 'active' : ''}`}
-                                onClick={() => setActiveGroupId(group.id)}
-                            >
-                                {group.type === 'announcements' ? <Bell size={18} className="group-icon" /> : <Hash size={18} className="group-icon" />}
-                                <span className="group-name">{group.name}</span>
-                            </button>
+                            <div key={group.id} className={`group-item-container ${activeGroupId === group.id ? 'active' : ''}`}>
+                                <button 
+                                    className="group-item"
+                                    onClick={() => setActiveGroupId(group.id)}
+                                >
+                                    {group.type === 'announcements' ? <Bell size={18} className="group-icon" /> : <Hash size={18} className="group-icon" />}
+                                    <span className="group-name">{group.name}</span>
+                                </button>
+                                {currentCommunity.adminId === user?.uid && (
+                                    <button 
+                                        className="delete-group-inline" 
+                                        title="Delete Group"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeleteGroup(group.id, group.name);
+                                        }}
+                                    >
+                                        <Trash2 size={14} />
+                                    </button>
+                                )}
+                            </div>
                         ))}
                     </div>
                 </div>
@@ -463,133 +611,252 @@ const CommunityChat = () => {
                         <button className="mobile-only-back" onClick={() => navigate('/communities')}>
                             <ArrowLeft size={20} />
                         </button>
-                        <div className="header-text-box">
+                        <div 
+                            className="header-text-box" 
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => navigate(`/communities/${id}/groups/${activeGroupId}/settings`)}
+                            title="Group Settings"
+                        >
                             <h2>{activeGroup?.name || 'Select a group'}</h2>
                             {activeGroup?.description && (
                                 <p className="header-subtext">{activeGroup.description}</p>
                             )}
                         </div>
                     </div>
-                    <div className="chat-header-actions">
-                        <button className="header-btn">
-                            <Bell size={20} />
-                        </button>
-                        <button className={`header-btn ${showMembers ? 'active' : ''}`} onClick={() => setShowMembers(!showMembers)}>
-                            <Users size={20} />
-                        </button>
-                        <div className="menu-container">
-                            <button className="header-btn" onClick={() => setShowMenu(!showMenu)}>
-                                <MoreVertical size={20} />
+                        <div className="chat-header-tabs">
+                            <button 
+                                className={`header-tab ${activeTab === 'chat' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('chat')}
+                            >
+                                Chat
                             </button>
-                            {showMenu && (
-                                <div className="header-dropdown">
-                                    <button onClick={() => { setIsInfoModalOpen(true); setShowMenu(false); }}>
-                                        <Info size={16} /> Community Info
-                                    </button>
-                                    {currentCommunity.adminId === user?.uid ? (
-                                        <button className="delete-option" onClick={() => { handleDeleteCommunity(); setShowMenu(false); }}>
-                                            <Trash2 size={16} /> Delete Community
-                                        </button>
-                                    ) : (
-                                        <button className="leave-option" onClick={() => { handleLeaveCommunity(); setShowMenu(false); }}>
-                                            <LogOut size={16} /> Leave Community
-                                        </button>
-                                    )}
-                                </div>
+                            
+                            {currentCommunity.adminId === user?.uid && (
+                                <button 
+                                    className={`header-tab ${activeTab === 'manage' ? 'active' : ''}`}
+                                    onClick={() => setActiveTab('manage')}
+                                >
+                                    <Users size={16} /> Manage Groups
+                                    {activeGroup?.pendingRequests?.length > 0 && <span className="notif-dot" />}
+                                </button>
+                            )}
+
+                            {!(currentCommunity.adminId === user?.uid) && activeGroup?.members?.includes(user?.uid) && (
+                                <button 
+                                    className="header-tab exit-group-tab"
+                                    onClick={handleExitGroup}
+                                    title="Exit Group"
+                                >
+                                    <LogOut size={16} /> Exit
+                                </button>
                             )}
                         </div>
                     </div>
-                </div>
 
-                {/* Messages Feed */}
-                <div className="chat-messages">
-                    <div className="chat-welcome">
-                        <div className="welcome-icon">
-                            <Hash size={40} />
-                        </div>
-                        <h2>Welcome to {activeGroup?.name || currentCommunity.name || 'the community'}!</h2>
-                        <p>{activeGroup?.description || "This is the start of the conversation. Send a message to get things started!"}</p>
-                    </div>
-
-                    {messages.map((msg, index) => {
-                        const showAvatar = index === 0 || messages[index - 1].userId !== msg.userId;
-
-                        return (
-                            <div key={msg.id} className={`message-row ${showAvatar ? 'first' : 'consecutive'}`}>
-                                {showAvatar ? (
-                                    <div className="msg-avatar">
-                                        {msg.userPhoto ? (
-                                            <img src={msg.userPhoto} alt={msg.username} />
+                {/* Conditional Rendering: Chat or Management */}
+                {activeTab === 'chat' ? (
+                    <div className="chat-content-scroller">
+                        {/* Messages Feed */}
+                        <div className="chat-messages">
+                            {(!activeGroup?.members?.includes(user?.uid) && currentCommunity.adminId !== user?.uid) ? (
+                                <div className="locked-group-overlay">
+                                    <div className="locked-content">
+                                        <div className="lock-icon-circle">
+                                            <Info size={40} />
+                                        </div>
+                                        <h2>This group is private</h2>
+                                        <p>You need to be a member to view the messages and participate in the discussion.</p>
+                                        
+                                        {activeGroup?.pendingRequests?.includes(user?.uid) ? (
+                                            <div className="pending-status">
+                                                <Info size={18} /> Request Sent. Waiting for admin approval.
+                                            </div>
                                         ) : (
-                                            <span>{msg.username ? msg.username[0].toUpperCase() : 'U'}</span>
+                                            <button className="request-join-btn" onClick={handleRequestToJoinGroup}>
+                                                Request to Join Group
+                                            </button>
                                         )}
                                     </div>
-                                ) : (
-                                    <div className="msg-avatar-spacer">
-                                        <span className="msg-hover-time">{formatTime(msg.createdAt)}</span>
-                                    </div>
-                                )}
-
-                                <div className="msg-content-wrapper">
-                                    {showAvatar && (
-                                        <div className="msg-header">
-                                            <span className="msg-username">{msg.username} {msg.userId === user?.uid && <span className="you-label">(You)</span>}</span>
-                                            {msg.userId === currentCommunity.adminId && (
-                                                <span className="admin-badge">Admin</span>
-                                            )}
-                                            <span className="msg-time">{formatTime(msg.createdAt)}</span>
-                                        </div>
-                                    )}
-                                    <div className="msg-text">
-                                        {msg.text}
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
-                    <div ref={messagesEndRef} />
-                </div>
-
-                {/* Message Input */}
-                <div className="chat-input-container">
-                    {isJoined ? (
-                        <>
-                            {(activeGroup?.type === 'announcements' && currentCommunity.adminId !== user.uid) ? (
-                                <div className="announcement-only-notice">
-                                    Only admins can post in this group.
                                 </div>
                             ) : (
-                                <form className="discord-input-form" onSubmit={handleSendMessage}>
-                                    <div className="discord-input-inner">
-                                        <button type="button" className="action-btn">
-                                            <Smile size={22} />
-                                        </button>
-                                        <input
-                                            type="text"
-                                            placeholder={`Message ${activeGroup?.name || '...'}`}
-                                            value={newMessage}
-                                            onChange={(e) => setNewMessage(e.target.value)}
-                                        />
-                                        <button
-                                            type="submit"
-                                            className={`send-action-btn ${newMessage.trim() ? 'active' : ''}`}
-                                            disabled={!newMessage.trim()}
-                                        >
-                                            <Send size={20} />
-                                        </button>
+                                <>
+                                    <div className="chat-welcome">
+                                        <div className="welcome-icon">
+                                            <Hash size={40} />
+                                        </div>
+                                        <h2>Welcome to {activeGroup?.name || currentCommunity.name || 'the community'}!</h2>
+                                        <p>{activeGroup?.description || "This is the start of the conversation. Send a message to get things started!"}</p>
                                     </div>
-                                </form>
+
+                                    {messages.map((msg, index) => {
+                                        const isOwn = msg.userId === user?.uid;
+                                        const showAvatar = (index === 0 || messages[index - 1].userId !== msg.userId) && !isOwn;
+
+                                        return (
+                                            <div key={msg.id} className={`message-row ${isOwn ? 'is-own' : 'is-other'} ${showAvatar ? 'first' : 'consecutive'}`}>
+                                                {!isOwn && showAvatar && (
+                                                    <div className="msg-avatar">
+                                                        {msg.userPhoto ? (
+                                                            <img src={msg.userPhoto} alt={msg.username} />
+                                                        ) : (
+                                                            <span>{msg.username ? msg.username[0].toUpperCase() : 'U'}</span>
+                                                        )}
+                                                    </div>
+                                                )}
+                                                {!isOwn && !showAvatar && (
+                                                    <div className="msg-avatar-spacer">
+                                                        <span className="msg-hover-time">{formatTime(msg.createdAt)}</span>
+                                                    </div>
+                                                )}
+
+                                                <div className="msg-content-wrapper">
+                                                    {!isOwn && showAvatar && (
+                                                        <div className="msg-header">
+                                                            <span className="msg-username">
+                                                                {msg.username}
+                                                            </span>
+                                                            {msg.userId === currentCommunity.adminId && (
+                                                                <span className="admin-badge">Admin</span>
+                                                            )}
+                                                            <span className="msg-time">{formatTime(msg.createdAt)}</span>
+                                                        </div>
+                                                    )}
+                                                    <div className="msg-bubble">
+                                                        <div className="msg-text">
+                                                            {msg.text}
+                                                        </div>
+                                                        <div className="msg-footer">
+                                                            <span className="msg-time-small">{formatTime(msg.createdAt)}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                    <div ref={messagesEndRef} />
+                                </>
                             )}
-                        </>
-                    ) : (
-                        <div className="join-prompt-bar">
-                            <h3>Preview Mode Activated</h3>
-                            <button className="discord-join-btn" onClick={handleJoinClick}>
-                                Join {currentCommunity.name} to participate
-                            </button>
                         </div>
-                    )}
-                </div>
+
+                        {/* Message Input (only for members) */}
+                        <div className="chat-input-container">
+                            {isJoined && (activeGroup?.members?.includes(user?.uid) || currentCommunity.adminId === user?.uid || currentCommunity.admins?.includes(user?.uid)) ? (
+                                <>
+                                    {((activeGroup?.type === 'announcements' || activeGroup?.settings?.chatPolicy === 'admins') && 
+                                       !(currentCommunity.adminId === user?.uid || currentCommunity.admins?.includes(user?.uid))) ? (
+                                        <div className="announcement-only-notice">
+                                            <Lock size={16} /> Only admins can post in this group.
+                                        </div>
+                                    ) : (
+                                        <form className="discord-input-form" onSubmit={handleSendMessage}>
+                                            <div className="discord-input-inner">
+                                                <div className="emoji-picker-wrapper" ref={emojiPickerRef}>
+                                                    <button 
+                                                        type="button" 
+                                                        className={`action-btn ${showEmojiPicker ? 'active' : ''}`}
+                                                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                                    >
+                                                        <Smile size={22} />
+                                                    </button>
+                                                    {showEmojiPicker && (
+                                                        <div className="emoji-picker-container">
+                                                            <EmojiPicker 
+                                                                onEmojiClick={onEmojiClick}
+                                                                width={320}
+                                                                height={400}
+                                                                theme="light"
+                                                                searchDisabled={false}
+                                                                skinTonesDisabled={true}
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    placeholder={`Message ${activeGroup?.name || '...'}`}
+                                                    value={newMessage}
+                                                    onChange={(e) => setNewMessage(e.target.value)}
+                                                />
+                                                <button
+                                                    type="submit"
+                                                    className={`send-action-btn ${newMessage.trim() ? 'active' : ''}`}
+                                                    disabled={!newMessage.trim()}
+                                                >
+                                                    <Send size={20} />
+                                                </button>
+                                            </div>
+                                        </form>
+                                    )}
+                                </>
+                            ) : !isJoined && (
+                                <div className="join-prompt-bar">
+                                    <h3>Preview Mode Activated</h3>
+                                    <button className="discord-join-btn" onClick={handleJoinClick}>
+                                        Join {currentCommunity.name} to participate
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                ) : (
+                    <div className="group-management-content">
+                        <div className="mgmt-section">
+                            <h4>Pending Join Requests ({activeGroup?.pendingRequests?.length || 0})</h4>
+                            <div className="requests-list">
+                                {(!activeGroup?.pendingRequests || activeGroup.pendingRequests.length === 0) ? (
+                                    <p className="empty-info">No pending requests for this group.</p>
+                                ) : (
+                                    activeGroup.pendingRequests.map(requestId => {
+                                        const member = communityMembers.find(m => m.id === requestId);
+                                        return (
+                                            <div key={requestId} className="request-card">
+                                                <div className="request-user">
+                                                    <div className="mini-avatar">
+                                                        {member?.photoURL ? <img src={member.photoURL} alt={member.username} /> : <span>{member?.username?.charAt(0) || 'U'}</span>}
+                                                    </div>
+                                                    <span className="request-name">{member?.username || 'Unknown Student'}</span>
+                                                </div>
+                                                <div className="request-actions">
+                                                    <button className="approve-btn" onClick={() => handleApproveGroupRequest(requestId)}>Approve</button>
+                                                    <button className="reject-btn" onClick={() => handleRejectGroupRequest(requestId)}>Reject</button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="mgmt-section">
+                            <h4>Group Members ({activeGroup?.members?.length || 0})</h4>
+                            <div className="members-mgmt-list">
+                                {(!activeGroup?.members || activeGroup.members.length === 0) ? (
+                                    <p className="empty-info">No members in this group yet (Admins are always members).</p>
+                                ) : (
+                                    activeGroup.members.map(memberId => {
+                                        const member = communityMembers.find(m => m.id === memberId);
+                                        return (
+                                            <div key={memberId} className="mgmt-member-card">
+                                                <div className="member-brief">
+                                                    <div className="mini-avatar">
+                                                        {member?.photoURL ? <img src={member.photoURL} alt={member.username} /> : <span>{member?.username?.charAt(0) || 'U'}</span>}
+                                                    </div>
+                                                    <span className="mgmt-name">{member?.username || 'Student'}</span>
+                                                    {memberId === currentCommunity.adminId && <span className="admin-chip">Community Admin</span>}
+                                                </div>
+                                                {memberId !== currentCommunity.adminId && (
+                                                    <button className="remove-btn" onClick={() => handleRemoveGroupMember(memberId)}>
+                                                        <UserMinus size={16} /> Remove
+                                                    </button>
+                                                )}
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Members Sidebar (Toggleable) */}

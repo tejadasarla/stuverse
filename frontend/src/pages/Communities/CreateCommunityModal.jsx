@@ -30,6 +30,8 @@ const CreateCommunityModal = ({ isOpen, onClose }) => {
                 category: category || 'General',
                 banner: banner || `https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=800&auto=format&fit=crop`,
                 adminId: user.uid,
+                creatorId: user.uid,
+                admins: [user.uid],
                 adminName: userData?.username || user.displayName || 'Anonymous Tribe Leader',
                 adminPhoto: userData?.photoURL || user.photoURL || '',
                 createdAt: serverTimestamp(),

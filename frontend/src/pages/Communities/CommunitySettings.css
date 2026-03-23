@@ -1,0 +1,227 @@
+.settings-page {
+    min-height: 100vh;
+    background: #f8f9fa;
+    padding: 40px 20px;
+    font-family: 'Inter', sans-serif;
+}
+
+.settings-header {
+    max-width: 900px;
+    margin: 0 auto 40px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.settings-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #2d3436;
+    margin: 0;
+}
+
+.back-btn {
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    border: none;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #636e72;
+    transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+    background: #0045ff;
+    color: white;
+    transform: translateX(-4px);
+}
+
+.settings-main {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.settings-card {
+    background: white;
+    border-radius: 24px;
+    padding: 40px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.settings-section {
+    margin-bottom: 50px;
+}
+
+.settings-section:last-child {
+    margin-bottom: 0px;
+}
+
+.settings-section h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #2d3436;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-group label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #636e72;
+}
+
+.settings-form input,
+.settings-form textarea,
+.settings-select {
+    padding: 14px 20px;
+    border-radius: 12px;
+    border: 2px solid #edf2f7;
+    background: #f8fafc;
+    font-size: 15px;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.settings-form input:focus,
+.settings-form textarea:focus,
+.settings-select:focus {
+    outline: none;
+    border-color: #0045ff;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(0, 69, 255, 0.1);
+}
+
+.settings-form textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-with-icon svg {
+    position: absolute;
+    left: 16px;
+    color: #a0aec0;
+}
+
+.input-with-icon input {
+    padding-left: 48px;
+    width: 100%;
+}
+
+.save-settings-btn {
+    margin-top: 10px;
+    padding: 16px 32px;
+    border-radius: 14px;
+    background: #0045ff;
+    color: white;
+    border: none;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 20px rgba(0, 69, 255, 0.2);
+    width: fit-content;
+}
+
+.save-settings-btn:hover:not(:disabled) {
+    background: #0037cc;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(0, 69, 255, 0.3);
+}
+
+.save-settings-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.danger-zone {
+    margin-top: 60px;
+    padding: 32px;
+    background: #fffcfc;
+    border: 1px solid #fee2e2;
+    border-radius: 20px;
+}
+
+.danger-zone h2 {
+    color: #dc2626;
+}
+
+.danger-zone p {
+    color: #7f1d1d;
+    font-size: 14px;
+    margin-bottom: 20px;
+    opacity: 0.8;
+}
+
+.delete-comm-btn {
+    padding: 14px 24px;
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    width: fit-content;
+}
+
+.delete-comm-btn:hover {
+    background: #dc2626;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(220, 38, 38, 0.2);
+}
+
+/* Loader Styles */
+.settings-loader-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    font-size: 20px;
+    color: #636e72;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .settings-page {
+        padding: 20px 15px;
+    }
+    .settings-card {
+        padding: 24px;
+    }
+    .save-settings-btn {
+        width: 100%;
+    }
+}

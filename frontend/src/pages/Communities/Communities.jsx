@@ -2,10 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { db } from '../../firebase.config';
-import { collection, doc, updateDoc, arrayUnion, arrayRemove, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { collection, doc, updateDoc, arrayUnion, arrayRemove, onSnapshot, query, orderBy, increment } from 'firebase/firestore';
 import CreateCommunityModal from './CreateCommunityModal';
-import { Plus, Users, Shield, PlusCircle, LayoutDashboard, Globe } from 'lucide-react';
+import { Plus, Users, Shield, PlusCircle, LayoutDashboard, Globe, LogOut } from 'lucide-react';
 import './Communities.css';
+
+// Sub-component to fetch admin name dynamically
+const AdminName = ({ adminId, initialName, currentUserId }) => {
+    const [name, setName] = useState(initialName);
+
+    useEffect(() => {
+        if (!adminId || adminId === currentUserId) return;
+        
+        // Listen to the admin's user document for real-time name updates
+        const unsub = onSnapshot(doc(db, 'users', adminId), (docSnap) => {
+            if (docSnap.exists()) {
+                setName(docSnap.data().username || initialName);
+            }
+        });
+        return () => unsub();
+    }, [adminId, currentUserId, initialName]);
+
+    return <strong>{adminId === currentUserId ? 'you' : name}</strong>;
+};
 
 const Communities = () => {
     const { user, userData, refreshUserData } = useAuth();
@@ -19,11 +38,18 @@ const Communities = () => {
         const q = query(collection(db, 'communities'), orderBy('createdAt', 'desc'));
         
         const unsubscribe = onSnapshot(q, (snapshot) => {
-            const comms = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-                joined: userData?.communities?.includes(doc.id) || false
-            }));
+            console.log("Current userData.communities:", userData?.communities);
+            const comms = snapshot.docs.map(doc => {
+                const data = doc.data();
+                const isMember = userData?.communities?.includes(doc.id);
+                const isAdmin = data.adminId === user?.uid;
+                console.log(`Community ${data.name}: isMember=${isMember}, isAdmin=${isAdmin}`);
+                return {
+                    id: doc.id,
+                    ...data,
+                    joined: isMember || isAdmin
+                };
+            });
             setCommunities(comms);
             setLoading(false);
         }, (error) => {
@@ -33,6 +59,29 @@ const Communities = () => {
 
         return () => unsubscribe();
     }, [userData]);
+
+    const handleLeaveCommunity = async (id, name) => {
+        if (!window.confirm(`Are you sure you want to leave the "${name}" community?`)) return;
+
+        try {
+            const userRef = doc(db, 'users', user.uid);
+            await updateDoc(userRef, {
+                communities: arrayRemove(id)
+            });
+
+            const commRef = doc(db, 'communities', id);
+            await updateDoc(commRef, {
+                memberCount: increment(-1),
+                members: arrayRemove(user.uid)
+            });
+
+            await refreshUserData();
+            alert(`Success: You have left "${name}".`);
+        } catch (error) {
+            console.error("Error leaving community:", error);
+            alert(`Failed to leave: ${error.message}. If this is your tribe, you must delete it instead.`);
+        }
+    };
 
     const handleJoinToggle = async (id) => {
         if (!user) {
@@ -68,9 +117,15 @@ const Communities = () => {
     };
 
     const filteredCommunities = communities.filter(c => {
-        if (!c.id) return false; // Extra safety
-        if (filter === 'joined') return userData?.communities?.includes(c.id);
-        if (filter === 'my') return c.adminId === user?.uid;
+        if (!c.id) return false;
+        if (filter === 'joined') {
+            const isJoined = userData?.communities?.includes(c.id);
+            const isAdminMember = c.admins?.includes(user?.uid) || c.adminId === user?.uid;
+            return isJoined || isAdminMember;
+        }
+        if (filter === 'my') {
+            return c.admins?.includes(user?.uid) || c.adminId === user?.uid;
+        }
         return true;
     });
 
@@ -149,18 +204,29 @@ const Communities = () => {
 
                                     <div className="comm-meta">
                                         <span className="comm-admin">
-                                            <Shield size={14} /> Created by <strong>{community.adminId === user?.uid ? 'you' : community.adminName}</strong>
+                                            <Shield size={14} /> Created by <AdminName adminId={community.adminId} initialName={community.adminName} currentUserId={user?.uid} />
                                         </span>
                                     </div>
 
                                     <div className="comm-actions">
                                         {(community.joined || community.adminId === user?.uid) ? (
-                                            <button 
-                                                className="comm-join-btn joined"
-                                                onClick={() => navigate(`/communities/${community.id}`)}
-                                            >
-                                                Open Chat
-                                            </button>
+                                            <>
+                                                <button 
+                                                    className="comm-join-btn joined"
+                                                    onClick={() => navigate(`/communities/${community.id}`)}
+                                                >
+                                                    Open Chat
+                                                </button>
+                                                {community.adminId !== user?.uid && (
+                                                    <button 
+                                                        className="leave-btn-card"
+                                                        onClick={() => handleLeaveCommunity(community.id, community.name)}
+                                                        title="Leave Community"
+                                                    >
+                                                        <LogOut size={18} />
+                                                    </button>
+                                                )}
+                                            </>
                                         ) : (
                                             <button 
                                                 className="comm-join-btn"

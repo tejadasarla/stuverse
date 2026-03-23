@@ -215,11 +215,26 @@
     color: var(--primary);
 }
 
-.nav-btn.active {
-    background: var(--primary);
+
+.leave-btn-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 71, 87, 0.2);
+    background: rgba(255, 71, 87, 0.05);
+    color: #ff4757;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.leave-btn-card:hover {
+    background: #ff4757;
     color: white;
-    border-color: var(--primary);
-    box-shadow: 0 4px 12px rgba(0, 69, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 71, 87, 0.2);
 }
 
 .header-actions {

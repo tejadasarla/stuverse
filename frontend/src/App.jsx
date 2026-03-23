@@ -11,6 +11,8 @@ import Colleges from './pages/Colleges/Colleges';
 import Profile from './pages/Profile/Profile';
 import Search from './pages/Search/Search';
 import About from './pages/About/About';
+import CommunitySettings from './pages/Communities/CommunitySettings';
+import GroupSettings from './pages/Communities/GroupSettings';
 import './App.css';
 
 function App() {
@@ -20,6 +22,8 @@ function App() {
         <Route index element={<Home />} />
         <Route path="communities" element={<Communities />} />
         <Route path="communities/:id" element={<CommunityChat />} />
+        <Route path="communities/:id/settings" element={<CommunitySettings />} />
+        <Route path="communities/:id/groups/:groupId/settings" element={<GroupSettings />} />
         <Route path="events" element={<Events />} />
         <Route path="colleges" element={<Colleges />} />
         <Route path="login" element={<Auth />} />
