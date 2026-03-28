@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../firebase.config';
 import { useAuth } from '../../context/AuthContext';
-import { ArrowLeft, Save, Shield, MessageSquare, MoreHorizontal, Camera, Lock, Eye } from 'lucide-react';
+import { ArrowLeft, Save, Shield, MessageSquare, MoreHorizontal, Camera, Lock, Eye, Trash2 } from 'lucide-react';
 import './CommunitySettings.css';
 
 const GroupSettings = () => {
@@ -68,6 +68,26 @@ const GroupSettings = () => {
                 }
             });
             alert("Group settings updated successfully!");
+        } catch (err) {
+            alert(`Error: ${err.message}`);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleDeleteGroup = async () => {
+        if (!isAdmin) {
+            alert("Only admins can delete groups.");
+            return;
+        }
+        
+        if (!window.confirm(`CRITICAL: Are you sure you want to delete the group "${group.name}"? All messages will be lost forever.`)) return;
+        
+        setSaving(true);
+        try {
+            await deleteDoc(doc(db, 'communities', id, 'groups', groupId));
+            alert("Group deleted successfully.");
+            navigate(`/communities/${id}`);
         } catch (err) {
             alert(`Error: ${err.message}`);
         } finally {
@@ -142,6 +162,16 @@ const GroupSettings = () => {
                             )}
                         </form>
                     </section>
+                    
+                    {isAdmin && (
+                        <section className="settings-section danger-zone">
+                            <h2><Lock size={20} /> Danger Zone</h2>
+                            <p>This will permanently remove this group and all its message history. Use with caution.</p>
+                            <button className="delete-comm-btn" onClick={handleDeleteGroup} disabled={saving}>
+                                <Trash2 size={18} /> {saving ? 'Removing...' : 'Delete Group'}
+                            </button>
+                        </section>
+                    )}
                 </div>
             </main>
         </div>

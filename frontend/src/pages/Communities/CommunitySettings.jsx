@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, arrayUnion, deleteDoc } from 'firebase/firestore';
 import { db } from '../../firebase.config';
 import { useAuth } from '../../context/AuthContext';
-import { ArrowLeft, Shield, Users, MessageSquare, Lock, Globe, Camera } from 'lucide-react';
+import { ArrowLeft, Shield, Users, MessageSquare, Lock, Globe, Camera, Trash2, Save } from 'lucide-react';
 import './CommunitySettings.css';
 
 const CommunitySettings = () => {
@@ -75,14 +75,26 @@ const CommunitySettings = () => {
         }
         if (!window.confirm("CRITICAL: Are you sure you want to delete this community? All data, groups, and chats will be lost forever.")) return;
         
+        setSaving(true);
         try {
-            // Soft delete or hide would be safer, but user asked for delete
-            // await deleteDoc(doc(db, 'communities', id)); 
-            // Better to soft delete in this case or use a cloud function
-            alert("Developer Note: Permanent deletion would require removing all sub-collections. For safety, this action is restricted.");
-            // navigate('/communities');
+            // In a production app, we would also delete all sub-collections (groups and messages)
+            // For now, we delete the main document. 
+            // Note: Orphaned sub-collections will remain in Firestore but will be inaccessible.
+            await deleteDoc(doc(db, 'communities', id));
+            
+            // Also need to remove this community from the user's joined list
+            if (userData?.communities?.includes(id)) {
+                await updateDoc(doc(db, 'users', user.uid), {
+                    communities: userData.communities.filter(c => c !== id)
+                });
+            }
+
+            alert("Community deleted successfully.");
+            navigate('/communities');
         } catch (err) {
-            alert(err.message);
+            alert(`Error deleting community: ${err.message}`);
+        } finally {
+            setSaving(false);
         }
     };
 

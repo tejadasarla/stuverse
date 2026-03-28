@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { db } from '../../firebase.config';
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, arrayUnion, arrayRemove, where, deleteDoc, increment } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, arrayUnion, arrayRemove, where, deleteDoc, increment, getDocs, writeBatch } from 'firebase/firestore';
 import { Send, ArrowLeft, Hash, Users, Image as ImageIcon, Smile, Bell, MoreVertical, Plus, Trash2, UserMinus, LogOut, Info, X } from 'lucide-react';
 import EmojiPicker from 'emoji-picker-react';
 import './CommunityChat.css';
@@ -501,6 +501,39 @@ const CommunityChat = () => {
         }
     };
 
+    const handleDeleteMessage = async (messageId) => {
+        if (!window.confirm("Delete this message?")) return;
+        try {
+            await deleteDoc(doc(db, 'communities', id, 'groups', activeGroupId, 'messages', messageId));
+        } catch (error) {
+            console.error("Error deleting message:", error);
+            alert("Failed to delete message.");
+        }
+    };
+    
+    const handleClearChat = async () => {
+        if (!window.confirm("CRITICAL: Are you sure you want to clear ALL messages in this group? This cannot be undone.")) return;
+        try {
+            const q = query(collection(db, 'communities', id, 'groups', activeGroupId, 'messages'));
+            const snapshot = await getDocs(q);
+            
+            if (snapshot.empty) {
+                alert("Group is already empty.");
+                return;
+            }
+
+            const batch = writeBatch(db);
+            snapshot.docs.forEach((msgDoc) => {
+                batch.delete(msgDoc.ref);
+            });
+            await batch.commit();
+            alert("Group history cleared successfully.");
+        } catch (error) {
+            console.error("Error clearing chat:", error);
+            alert("Failed to clear chat: " + error.message);
+        }
+    };
+
     const onEmojiClick = (emojiData) => {
         setNewMessage(prev => prev + emojiData.emoji);
     };
@@ -640,6 +673,16 @@ const CommunityChat = () => {
                                     {activeGroup?.pendingRequests?.length > 0 && <span className="notif-dot" />}
                                 </button>
                             )}
+                            
+                            {(currentCommunity.adminId === user?.uid || currentCommunity.admins?.includes(user?.uid)) && (
+                                <button 
+                                    className="header-tab clear-chat-tab"
+                                    onClick={handleClearChat}
+                                    title="Clear all messages in this group"
+                                >
+                                    <Trash2 size={16} /> Clear Chat
+                                </button>
+                            )}
 
                             {!(currentCommunity.adminId === user?.uid) && activeGroup?.members?.includes(user?.uid) && (
                                 <button 
@@ -728,6 +771,15 @@ const CommunityChat = () => {
                                                         <div className="msg-footer">
                                                             <span className="msg-time-small">{formatTime(msg.createdAt)}</span>
                                                         </div>
+                                                        {(isOwn || currentCommunity.adminId === user?.uid) && (
+                                                            <button 
+                                                                className="msg-delete-btn" 
+                                                                onClick={() => handleDeleteMessage(msg.id)}
+                                                                title="Delete Message"
+                                                            >
+                                                                <Trash2 size={14} />
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>

@@ -27,6 +27,18 @@ const Profile = () => {
     const [imageFile, setImageFile] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
     const [removePhoto, setRemovePhoto] = useState(false);
+    const [selectedPreset, setSelectedPreset] = useState(null);
+
+    const girlPresets = [
+        { id: 'girl1', path: '/avatars/girl1.png', label: 'Student 1' },
+        { id: 'girl2', path: '/avatars/girl2.png', label: 'Student 2' },
+        { id: 'girl3', path: '/avatars/girl3.png', label: 'Student 3' }
+    ];
+    const boyPresets = [
+        { id: 'boy1', path: '/avatars/boy1.png', label: 'Student 1' },
+        { id: 'boy2', path: '/avatars/boy2.png', label: 'Student 2' },
+        { id: 'boy3', path: '/avatars/boy3.png', label: 'Student 3' }
+    ];
 
     useEffect(() => {
         if (userData) {
@@ -52,6 +64,7 @@ const Profile = () => {
                 return;
             }
             setImageFile(file);
+            setSelectedPreset(null);
             setRemovePhoto(false);
             const reader = new FileReader();
             reader.onloadend = () => {
@@ -59,6 +72,13 @@ const Profile = () => {
             };
             reader.readAsDataURL(file);
         }
+    };
+
+    const handleSelectPreset = (path) => {
+        setImagePreview(path);
+        setSelectedPreset(path);
+        setImageFile(null);
+        setRemovePhoto(false);
     };
 
     const compressImage = (file) => {
@@ -131,6 +151,8 @@ const Profile = () => {
                 const storageRef = ref(storage, `profiles/${user.uid}`);
                 const snapshot = await uploadBytes(storageRef, compressedBlob);
                 photoURL = await getDownloadURL(snapshot.ref);
+            } else if (selectedPreset) {
+                photoURL = selectedPreset;
             } else if (removePhoto) {
                 photoURL = '';
                 try {
@@ -345,10 +367,44 @@ const Profile = () => {
                                     onChange={handleImageChange}
                                 />
                                 <div style={{ display: 'flex', gap: '15px', marginTop: '8px' }}>
-                                    <p className="upload-hint" style={{ cursor: 'pointer', color: '#6a11cb' }}>Click image to change</p>
+                                    <p className="upload-hint" style={{ cursor: 'pointer', color: '#6a11cb' }}>Click circle to upload</p>
                                     {(userData?.photoURL || imagePreview) && !removePhoto && (
-                                        <p className="upload-hint" onClick={handleRemovePhoto} style={{ cursor: 'pointer', color: '#ef4444' }}>| Delete Picture</p>
+                                        <p className="upload-hint" onClick={handleRemovePhoto} style={{ cursor: 'pointer', color: '#ef4444' }}>| Remove Picture</p>
                                     )}
+                                </div>
+                            </div>
+
+                            <div className="avatar-presets-container">
+                                <label className="preset-label">Choose a Professional Avatar</label>
+                                
+                                <div className="preset-group">
+                                    <span className="preset-subtitle">Student Stylings (Girls)</span>
+                                    <div className="preset-grid">
+                                        {girlPresets.map(preset => (
+                                            <div 
+                                                key={preset.id} 
+                                                className={`preset-item ${imagePreview === preset.path ? 'active' : ''}`}
+                                                onClick={() => handleSelectPreset(preset.path)}
+                                            >
+                                                <img src={preset.path} alt={preset.label} />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="preset-group">
+                                    <span className="preset-subtitle">Student Stylings (Boys)</span>
+                                    <div className="preset-grid">
+                                        {boyPresets.map(preset => (
+                                            <div 
+                                                key={preset.id} 
+                                                className={`preset-item ${imagePreview === preset.path ? 'active' : ''}`}
+                                                onClick={() => handleSelectPreset(preset.path)}
+                                            >
+                                                <img src={preset.path} alt={preset.label} />
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                             <div className="form-group">
