@@ -154,16 +154,19 @@ const CreateCommunityModal = ({ isOpen, onClose }) => {
                     </div>
 
                     <div className="form-group">
-                        <label>Banner URL (Optional)</label>
+                        <label>Community Banner URL</label>
                         <div className="input-with-icon">
                             <Camera size={18} />
                             <input 
                                 type="url" 
-                                placeholder="https://unsplash.com/your-image"
+                                placeholder="https://example.com/image.jpg (Direct Image Link)"
                                 value={banner}
                                 onChange={(e) => setBanner(e.target.value)}
                             />
                         </div>
+                        <p className="form-hint" style={{ fontSize: '11px', color: 'var(--text-dim)', marginTop: '4px' }}>
+                            Tip: Copy the link of an image, not the page it's on.
+                        </p>
                     </div>
 
                     <div className="form-footer">

@@ -3,7 +3,7 @@
 .chat-layout {
     display: flex;
     height: 100vh;
-    padding-top: 96px;
+    padding-top: 0;
     box-sizing: border-box;
     background-color: var(--bg-light);
     /* Matching standard pages */
@@ -652,12 +652,44 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    margin-right: 16px;
-    transition: color 0.2s;
+    margin-right: 8px; /* Slightly closer for a tighter fit */
+    transition: all 0.2s;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
 }
 
 .action-btn:hover {
-    color: var(--secondary);
+    color: var(--primary);
+    background: rgba(0, 69, 255, 0.05);
+}
+
+.action-btn.active {
+    color: var(--primary);
+    background: rgba(0, 69, 255, 0.1);
+}
+
+.emoji-picker-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-left: -4px; /* Pull it slightly left to better align within padding */
+}
+
+.emoji-picker-container {
+    position: absolute;
+    bottom: 55px; /* Stay above the input */
+    left: 0; /* Align to the left as requested */
+    z-index: 1000;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    border-radius: 12px;
+    overflow: hidden;
+    animation: fadeInScale 0.2s ease;
+}
+
+@keyframes fadeInScale {
+    from { opacity: 0; transform: translateY(10px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .discord-input-inner input {

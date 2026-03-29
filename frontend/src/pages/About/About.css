@@ -28,6 +28,7 @@
     margin-bottom: 1.5rem;
     background: var(--primary-gradient);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -173,14 +174,15 @@
 .feature-icon-wrapper {
     width: 65px;
     height: 65px;
-    background: rgba(0, 210, 255, 0.1);
-    color: var(--primary);
+    background: #eef2ff;
+    color: #0f172a;
     border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: 1.5rem;
     transition: transform 0.3s ease;
+    border: 1px solid rgba(0, 69, 255, 0.1);
 }
 
 .feature-card:hover .feature-icon-wrapper {
@@ -189,9 +191,10 @@
 
 .feature-card h3 {
     font-size: 1.3rem;
-    color: var(--secondary);
+    color: #0045ff;
     margin-bottom: 1rem;
     font-family: var(--font-display);
+    font-weight: 700;
 }
 
 .feature-card p {

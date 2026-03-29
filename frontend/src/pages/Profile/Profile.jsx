@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { User, Mail, Calendar, MapPin, Award, BookOpen, LogOut, Edit3, X, Save, Camera, MessageSquare, Trash2 } from 'lucide-react';
+import { User, Mail, Phone, Calendar, MapPin, Award, BookOpen, LogOut, Edit3, X, Save, Camera, MessageCircle, Trash2 } from 'lucide-react';
 import { auth, db, storage } from '../../firebase.config';
 import { signOut, deleteUser } from 'firebase/auth';
 import { doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
@@ -25,13 +25,18 @@ const Profile = () => {
         yearOfStudy: '',
         academicYears: '',
         collegeName: '',
-        interests: ''
+        interests: '',
+        communities: [],
+        phoneNumber: '',
+        email: ''
     });
     const [updating, setUpdating] = useState(false);
     const [imageFile, setImageFile] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
     const [removePhoto, setRemovePhoto] = useState(false);
     const [selectedPreset, setSelectedPreset] = useState(null);
+    const [communityNames, setCommunityNames] = useState({});
+
 
     const isOwnProfile = !userId || userId === user?.uid;
 
@@ -61,7 +66,10 @@ const Profile = () => {
                         yearOfStudy: userData.yearOfStudy || '',
                         academicYears: userData.academicYears || '',
                         collegeName: userData.collegeName || '',
-                        interests: userData.interests || ''
+                        interests: userData.interests || '',
+                        communities: userData.communities || [],
+                        phoneNumber: userData.phoneNumber || '',
+                        email: userData.email || ''
                     });
                 }
                 setLoading(authLoading);
@@ -84,6 +92,40 @@ const Profile = () => {
 
         fetchUserData();
     }, [userId, userData, authLoading, isOwnProfile]);
+
+    useEffect(() => {
+        const fetchCommunityNames = async () => {
+            if (viewedUser?.communities && viewedUser.communities.length > 0) {
+                const currentCommunities = viewedUser.communities;
+                const newNames = {};
+                
+                const fetchPromises = currentCommunities.map(async (id) => {
+                    if (!communityNames[id]) {
+                        try {
+                            const commRef = doc(db, 'communities', id);
+                            const commSnap = await getDoc(commRef);
+                            if (commSnap.exists()) {
+                                newNames[id] = commSnap.data().name;
+                            } else {
+                                newNames[id] = `Tribe (${id.substring(0, 5)})`;
+                            }
+                        } catch (err) {
+                            console.error(`Error resolving community ${id}:`, err);
+                            newNames[id] = `Tribe (${id.substring(0, 5)})`;
+                        }
+                    }
+                });
+
+                await Promise.all(fetchPromises);
+                
+                if (Object.keys(newNames).length > 0) {
+                    setCommunityNames(prev => ({ ...prev, ...newNames }));
+                }
+            }
+        };
+
+        fetchCommunityNames();
+    }, [viewedUser?.communities]);
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -242,6 +284,9 @@ const Profile = () => {
             const userRef = doc(db, 'users', user.uid);
             await setDoc(userRef, {
                 ...editData,
+                communities: Array.isArray(editData.communities) 
+                    ? editData.communities 
+                    : editData.communities.split(',').map(c => c.trim()).filter(c => c !== ''),
                 photoURL: photoURL
             }, { merge: true });
             await refreshUserData();
@@ -287,8 +332,8 @@ const Profile = () => {
                             )}
                         </div>
                         <div className="profile-title">
-                            <h1>{viewedUser?.username || 'User'}</h1>
-                            <p className="profile-role">Student Member</p>
+                            <h1>{viewedUser?.fullName || viewedUser?.username || 'User'}</h1>
+                            <p className="profile-role">{viewedUser?.username ? `@${viewedUser.username}` : 'Student Member'}</p>
                         </div>
                     </div>
 
@@ -338,6 +383,33 @@ const Profile = () => {
                                         <p>{viewedUser?.location || 'Global Stuverse'}</p>
                                     </div>
                                 </div>
+                                {isOwnProfile && viewedUser?.phoneNumber && (
+                                    <div className="info-item">
+                                        <Phone className="info-icon" style={{ color: '#2575fc' }} />
+                                        <div>
+                                            <label>Phone</label>
+                                            <p>{viewedUser.phoneNumber}</p>
+                                        </div>
+                                    </div>
+                                )}
+                                {isOwnProfile && viewedUser?.email && (
+                                    <div className="info-item">
+                                        <Mail className="info-icon" style={{ color: '#6a11cb' }} />
+                                        <div>
+                                            <label>Email</label>
+                                            <p>{viewedUser.email}</p>
+                                        </div>
+                                    </div>
+                                )}
+                                {isOwnProfile && viewedUser?.dob && (
+                                    <div className="info-item full-width-interests">
+                                        <Calendar className="info-icon" style={{ color: '#ff6b6b' }} />
+                                        <div>
+                                            <label>Born On</label>
+                                            <p>{viewedUser.dob}</p>
+                                        </div>
+                                    </div>
+                                )}
                                 <div className="info-item full-width-interests">
                                     <Award className="info-icon" style={{ color: '#00d2ff' }} />
                                     <div>
@@ -345,13 +417,28 @@ const Profile = () => {
                                         <p className="interests-pillbox">{viewedUser?.interests || 'No passions shared yet'}</p>
                                     </div>
                                 </div>
+                                {viewedUser?.communities && viewedUser.communities.length > 0 && (
+                                    <div className="info-item full-width-interests">
+                                        <BookOpen className="info-icon" style={{ color: '#4facfe' }} />
+                                        <div>
+                                            <label>Member of Communities</label>
+                                            <div className="communities-pills">
+                                                {viewedUser.communities.map((id, index) => (
+                                                    <span key={index} className="community-pill">
+                                                        {communityNames[id] || `Tribe (${id.substring(0, 5)}...)`}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
                         {!isOwnProfile && (
                             <div className="connection-section">
                                 <button className="connect-message-btn" onClick={handleSendMessage}>
-                                    <MessageSquare size={20} /> Send Message & Connect
+                                    <MessageCircle size={20} /> Send Message & Connect
                                 </button>
                             </div>
                         )}
@@ -449,6 +536,31 @@ const Profile = () => {
                                 <div className="form-group">
                                     <label>Location</label>
                                     <input type="text" value={editData.location} onChange={(e) => setEditData({ ...editData, location: e.target.value })} />
+                                </div>
+                                <div className="form-group">
+                                    <label>Phone Number</label>
+                                    <input type="tel" value={editData.phoneNumber} onChange={(e) => setEditData({ ...editData, phoneNumber: e.target.value })} placeholder="+1 (234) 567-890" />
+                                </div>
+                                <div className="form-group">
+                                    <label>Contact Email</label>
+                                    <input type="email" value={editData.email} onChange={(e) => setEditData({ ...editData, email: e.target.value })} placeholder="hello@example.com" />
+                                </div>
+                                <div className="form-group">
+                                    <label>Academic Years (e.g. 2023-2027)</label>
+                                    <input type="text" value={editData.academicYears} onChange={(e) => setEditData({ ...editData, academicYears: e.target.value })} />
+                                </div>
+                                <div className="form-group">
+                                    <label>Date of Birth</label>
+                                    <input type="date" value={editData.dob} onChange={(e) => setEditData({ ...editData, dob: e.target.value })} />
+                                </div>
+                                <div className="form-group full-width">
+                                    <label>Communities (Comma separated IDs)</label>
+                                    <input 
+                                        type="text" 
+                                        value={Array.isArray(editData.communities) ? editData.communities.join(', ') : editData.communities} 
+                                        onChange={(e) => setEditData({ ...editData, communities: e.target.value })} 
+                                        placeholder="e.g. 2, 7tXuLHZ6D1R9TPomiMo6"
+                                    />
                                 </div>
                             </div>
                             

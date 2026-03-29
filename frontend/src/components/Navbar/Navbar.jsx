@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { User, Search as SearchIcon, MessageSquare } from 'lucide-react';
+import { User, Search as SearchIcon, MessageCircle } from 'lucide-react';
 import './Navbar.css';
 import logo from '../../assets/logo.png';
 
@@ -52,11 +52,27 @@ const Navbar = () => {
                 {user ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                         <Link to="/messages" className="nav-icon-link" title="Messages">
-                            <MessageSquare size={24} color="#64748b" />
+                            <div className="nav-icon-wrapper">
+                                <MessageCircle size={24} strokeWidth={2.2} />
+                            </div>
                         </Link>
                         <Link to="/profile" className="profile-link">
                             <div className="profile-icon-wrapper">
-                                <span className="user-initials">
+                                {userData?.photoURL ? (
+                                    <img 
+                                        src={userData.photoURL} 
+                                        alt="Avatar" 
+                                        className="navbar-avatar-img"
+                                        onError={(e) => {
+                                            e.target.style.display = 'none';
+                                            e.target.parentNode.children[1].style.display = 'block';
+                                        }}
+                                    />
+                                ) : null}
+                                <span 
+                                    className="user-initials" 
+                                    style={{ display: userData?.photoURL ? 'none' : 'block' }}
+                                >
                                     {userData?.username ? userData.username[0].toUpperCase() : 'U'}
                                 </span>
                             </div>

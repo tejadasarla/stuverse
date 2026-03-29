@@ -19,6 +19,7 @@ const Search = () => {
         channels: [],
         events: []
     });
+    const [communityMap, setCommunityMap] = useState({});
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('all');
 
@@ -52,14 +53,19 @@ const Search = () => {
                 const commsRef = collection(db, 'communities');
                 const commSnap = await getDocs(commsRef);
                 const communityResults = [];
+                const newMap = {};
+                
                 commSnap.forEach((doc) => {
                     const data = doc.data();
+                    newMap[doc.id] = data.name;
+
                     if (data.name?.toLowerCase().includes(initialQuery.toLowerCase()) || 
                         data.category?.toLowerCase().includes(initialQuery.toLowerCase()) ||
                         data.college?.toLowerCase().includes(initialQuery.toLowerCase())) {
                         communityResults.push({ id: doc.id, ...data });
                     }
                 });
+                setCommunityMap(newMap);
 
                 // 3. Search Events in Firestore
                 const eventsRef = collection(db, 'events');
@@ -151,7 +157,16 @@ const Search = () => {
 
                                         <div className="common-comm-badge">
                                             <Hash size={14} />
-                                            <span>Common Communities: <strong>{commonCount > 0 ? commonCount : '0'}</strong></span>
+                                            <span>
+                                                Common Communities: 
+                                                <strong>
+                                                    {commonCount > 0 ? (
+                                                        <span className="common-names-list">
+                                                            {common.map(id => communityMap[id] || id).join(', ')}
+                                                        </span>
+                                                    ) : '0'}
+                                                </strong>
+                                            </span>
                                         </div>
                                     </div>
                                     <div className="result-actions">

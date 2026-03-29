@@ -11,8 +11,7 @@ import Colleges from './pages/Colleges/Colleges';
 import Profile from './pages/Profile/Profile';
 import Search from './pages/Search/Search';
 import About from './pages/About/About';
-import DirectChat from './pages/Messages/DirectChat';
-import MessageList from './pages/Messages/Messages';
+import Messages from './pages/Messages/Messages';
 import CommunitySettings from './pages/Communities/CommunitySettings';
 import GroupSettings from './pages/Communities/GroupSettings';
 import './App.css';
@@ -33,8 +32,8 @@ function App() {
         <Route path="forgot-password" element={<ForgotPassword />} />
         <Route path="profile/:userId?" element={<Profile />} />
         <Route path="search" element={<Search />} />
-        <Route path="messages" element={<MessageList />} />
-        <Route path="messages/:chatId" element={<DirectChat />} />
+        <Route path="messages" element={<Messages />} />
+        <Route path="messages/:chatId" element={<Messages />} />
         <Route path="about" element={<About />} />
       </Route>
     </Routes>

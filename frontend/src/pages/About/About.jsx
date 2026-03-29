@@ -7,48 +7,6 @@ const About = () => {
         window.scrollTo(0, 0);
     }, []);
 
-    const stewards = [
-        {
-            id: 1,
-            name: "Rahul Sharma",
-            role: "Lead Stuverse",
-            college: "CBIT Hyderabad",
-            description: "Ensuring positive and meaningful discussions across all technical communities.",
-            avatar: "R"
-        },
-        {
-            id: 2,
-            name: "Priya Patel",
-            role: "Community Stuverse",
-            college: "VNR VJIET",
-            description: "Guiding freshers and maintaining respectful environments in the events space.",
-            avatar: "P"
-        },
-        {
-            id: 3,
-            name: "Ananya Reddy",
-            role: "Community Stuverse",
-            college: "CVR College of Engineering",
-            description: "Moderating conversations and preventing spam to build a safe networking platform.",
-            avatar: "A"
-        },
-        {
-            id: 4,
-            name: "Karan Singh",
-            role: "Lead Stuverse",
-            college: "Malla Reddy Engineering College",
-            description: "Leading the engagement team to help new users collaborate seamlessly.",
-            avatar: "K"
-        }
-    ];
-
-    const values = [
-        { icon: <Heart size={24} />, title: "Respect", desc: "Every voice matters. We foster an environment free from toxicity." },
-        { icon: <Globe size={24} />, title: "Inclusivity", desc: "A welcoming space for students from any background or college." },
-        { icon: <Users size={24} />, title: "Collaboration", desc: "Building bridges between institutions for shared learning." },
-        { icon: <Sparkles size={24} />, title: "Growth", desc: "Helping each other succeed academically and professionally." }
-    ];
-
     return (
         <div className="about-page-container">
             {/* About Us Section */}
@@ -122,80 +80,6 @@ const About = () => {
                         <h3>Safe Networking</h3>
                         <p>Secure collaboration and networking opportunities moderated by trusted student leaders.</p>
                     </div>
-                </div>
-            </section>
-
-            {/* Stewards Section */}
-            <section className="stewards-section">
-                <div className="stewards-header">
-                    <h2>Meet Our Stuverses</h2>
-                    <p>Stuverses are our dedicated community moderators responsible for maintaining healthy, respectful, and engaging spaces.</p>
-                </div>
-
-                <div className="stewards-grid">
-                    {stewards.map(steward => (
-                        <div key={steward.id} className="steward-card">
-                            <div className="steward-avatar-wrapper">
-                                <div className="steward-avatar">{steward.avatar}</div>
-                                {steward.role === "Lead Stuverse" && (
-                                    <div className="lead-badge" title="Lead Stuverse"><Shield size={14} /></div>
-                                )}
-                            </div>
-                            <div className="steward-info">
-                                <h3>{steward.name}</h3>
-                                <span className={`steward-role ${steward.role === 'Lead Stuverse' ? 'lead-role' : ''}`}>
-                                    {steward.role}
-                                </span>
-                                <span className="steward-college">{steward.college}</span>
-                                <p className="steward-desc">"{steward.description}"</p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                <div className="stewards-responsibilities">
-                    <h3>What Do Stuverses Do?</h3>
-                    <div className="resp-grid">
-                        <div className="resp-item">
-                            <div className="resp-icon"><Shield size={20} /></div>
-                            <span>Moderate conversations & prevent spam</span>
-                        </div>
-                        <div className="resp-item">
-                            <div className="resp-icon"><Heart size={20} /></div>
-                            <span>Maintain a respectful & safe environment</span>
-                        </div>
-                        <div className="resp-item">
-                            <div className="resp-icon"><Users size={20} /></div>
-                            <span>Help new users navigate communities</span>
-                        </div>
-                        <div className="resp-item">
-                            <div className="resp-icon"><Sparkles size={20} /></div>
-                            <span>Encourage positive, meaningful discussions</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div className="stewards-values">
-                    <h3>Our Core Values</h3>
-                    <div className="values-grid">
-                        {values.map((val, idx) => (
-                            <div key={idx} className="value-item">
-                                <div className="value-icon-wrapper">{val.icon}</div>
-                                <h4>{val.title}</h4>
-                                <p>{val.desc}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="become-steward-cta">
-                    <div className="cta-content">
-                        <h3>Want to make an impact?</h3>
-                        <p>Join the moderation team and help shape the future of digital campuses.</p>
-                    </div>
-                    <button className="cta-btn">
-                        <PlusCircle size={20} /> Become a Stuverse
-                    </button>
                 </div>
             </section>
         </div>

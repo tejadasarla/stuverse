@@ -68,7 +68,7 @@
 
 .search-icon-nav {
     color: var(--secondary);
-    opacity: 0.6;
+    opacity: 0.9;
     margin-right: 12px;
 }
 
@@ -86,7 +86,7 @@
 
 .navbar-search input::placeholder {
     color: var(--secondary);
-    opacity: 0.4;
+    opacity: 0.6;
 }
 
 .navbar-links {
@@ -320,4 +320,38 @@
     color: white;
     font-weight: 700;
     font-size: 1.1rem;
+}
+
+.navbar-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.nav-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    color: #334155;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.nav-icon-wrapper:hover {
+    background: white;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    color: var(--primary);
+    border-color: rgba(0, 69, 255, 0.2);
+}
+
+.nav-icon-link {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
 }

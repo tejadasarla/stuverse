@@ -241,6 +241,11 @@ const CommunityChat = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
+    const handleImageError = (e, name) => {
+        e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=random&color=fff`;
+        e.target.onerror = null; // Prevent infinite loop
+    };
+
     const handleJoinClick = async () => {
         if (!user) {
             alert("Please log in to join.");
@@ -562,7 +567,12 @@ const CommunityChat = () => {
                                 onClick={() => navigate(`/communities/${comm.id}`)}
                                 title={comm.name}
                             >
-                                <img src={comm.icon} alt={comm.name} className="sidebar-item-icon" />
+                                <img 
+                                    src={comm.icon} 
+                                    alt={comm.name} 
+                                    className="sidebar-item-icon" 
+                                    onError={(e) => handleImageError(e, comm.name)}
+                                />
                                 <span className="sidebar-item-name">{comm.name}</span>
                             </div>
                         ))
@@ -572,7 +582,11 @@ const CommunityChat = () => {
                 <div className="sidebar-user">
                     <div className="user-mini-avatar">
                         {userData?.photoURL ? (
-                            <img src={userData.photoURL} alt="Profile" />
+                            <img 
+                                src={userData.photoURL} 
+                                alt="Profile" 
+                                onError={(e) => handleImageError(e, userData?.username)}
+                            />
                         ) : (
                             <span>{userData?.username ? userData.username[0].toUpperCase() : 'U'}</span>
                         )}
@@ -740,7 +754,11 @@ const CommunityChat = () => {
                                                 {!isOwn && showAvatar && (
                                                     <div className="msg-avatar">
                                                         {msg.userPhoto ? (
-                                                            <img src={msg.userPhoto} alt={msg.username} />
+                                                            <img 
+                                                                src={msg.userPhoto} 
+                                                                alt={msg.username} 
+                                                                onError={(e) => handleImageError(e, msg.username)}
+                                                            />
                                                         ) : (
                                                             <span>{msg.username ? msg.username[0].toUpperCase() : 'U'}</span>
                                                         )}
@@ -815,10 +833,7 @@ const CommunityChat = () => {
                                                             <EmojiPicker 
                                                                 onEmojiClick={onEmojiClick}
                                                                 width={320}
-                                                                height={400}
-                                                                theme="light"
-                                                                searchDisabled={false}
-                                                                skinTonesDisabled={true}
+                                                                height={400} 
                                                             />
                                                         </div>
                                                     )}
@@ -863,9 +878,17 @@ const CommunityChat = () => {
                                         return (
                                             <div key={requestId} className="request-card">
                                                 <div className="request-user">
-                                                    <div className="mini-avatar">
-                                                        {member?.photoURL ? <img src={member.photoURL} alt={member.username} /> : <span>{member?.username?.charAt(0) || 'U'}</span>}
-                                                    </div>
+                                                <div className="mini-avatar">
+                                                    {member?.photoURL ? (
+                                                        <img 
+                                                            src={member.photoURL} 
+                                                            alt={member.username} 
+                                                            onError={(e) => handleImageError(e, member.username)}
+                                                        />
+                                                    ) : (
+                                                        <span>{member?.username?.charAt(0) || 'U'}</span>
+                                                    )}
+                                                </div>
                                                     <span className="request-name">{member?.username || 'Unknown Student'}</span>
                                                 </div>
                                                 <div className="request-actions">
@@ -890,9 +913,17 @@ const CommunityChat = () => {
                                         return (
                                             <div key={memberId} className="mgmt-member-card">
                                                 <div className="member-brief">
-                                                    <div className="mini-avatar">
-                                                        {member?.photoURL ? <img src={member.photoURL} alt={member.username} /> : <span>{member?.username?.charAt(0) || 'U'}</span>}
-                                                    </div>
+                                                <div className="mini-avatar">
+                                                    {member?.photoURL ? (
+                                                        <img 
+                                                            src={member.photoURL} 
+                                                            alt={member.username} 
+                                                            onError={(e) => handleImageError(e, member.username)}
+                                                        />
+                                                    ) : (
+                                                        <span>{member?.username?.charAt(0) || 'U'}</span>
+                                                    )}
+                                                </div>
                                                     <span className="mgmt-name">{member?.username || 'Student'}</span>
                                                     {memberId === currentCommunity.adminId && <span className="admin-chip">Community Admin</span>}
                                                 </div>
@@ -922,7 +953,11 @@ const CommunityChat = () => {
                             <div key={member.id} className="member-card" onClick={() => navigate(`/profile/${member.id}`)}>
                                 <div className="member-avatar">
                                     {member.photoURL ? (
-                                        <img src={member.photoURL} alt={member.username} />
+                                        <img 
+                                            src={member.photoURL} 
+                                            alt={member.username} 
+                                            onError={(e) => handleImageError(e, member.username)}
+                                        />
                                     ) : (
                                         <span>{member.username ? member.username[0].toUpperCase() : 'U'}</span>
                                     )}
@@ -995,7 +1030,11 @@ const CommunityChat = () => {
                         <div className="info-body">
                             <div className="info-hero">
                                 <div className="info-avatar">
-                                    <img src={currentCommunity.icon} alt={currentCommunity.name} />
+                                    <img 
+                                        src={currentCommunity.icon} 
+                                        alt={currentCommunity.name} 
+                                        onError={(e) => handleImageError(e, currentCommunity.name)}
+                                    />
                                 </div>
                                 <h3>{currentCommunity.name}</h3>
                                 <p>{currentCommunity.description || "No description provided."}</p>
@@ -1011,7 +1050,11 @@ const CommunityChat = () => {
                                             <div className="member-brief">
                                                 <div className="mini-avatar">
                                                     {member.photoURL ? (
-                                                        <img src={member.photoURL} alt={member.username} />
+                                                        <img 
+                                                            src={member.photoURL} 
+                                                            alt={member.username} 
+                                                            onError={(e) => handleImageError(e, member.username)}
+                                                        />
                                                     ) : (
                                                         <span>{member.username ? member.username[0].toUpperCase() : 'U'}</span>
                                                     )}
