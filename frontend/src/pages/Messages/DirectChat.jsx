@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useCall } from '../../context/CallContext';
 import { db } from '../../firebase.config';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, getDoc, setDoc, deleteDoc, getDocs, writeBatch, increment } from 'firebase/firestore';
-import { ArrowLeft, Send, User, MoreVertical, MessageCircle, Image, Heart, Info, Trash2, MoreHorizontal, Smile } from 'lucide-react';
+import { ArrowLeft, Send, User, MoreVertical, MessageCircle, Image, Heart, Info, Trash2, MoreHorizontal, Smile, Phone, Video } from 'lucide-react';
 import EmojiPicker from 'emoji-picker-react';
 import './DirectChat.css';
 
@@ -20,6 +21,8 @@ const DirectChat = () => {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [deletingId, setDeletingId] = useState(null);
     const emojiPickerRef = useRef(null);
+    const optionsRef = useRef(null);
+    const { initiateCall } = useCall();
 
     // 1. Resolve Other User info
     useEffect(() => {
@@ -83,6 +86,9 @@ const DirectChat = () => {
         const handleClickOutside = (event) => {
             if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
                 setShowEmojiPicker(false);
+            }
+            if (optionsRef.current && !optionsRef.current.contains(event.target)) {
+                setShowOptions(false);
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
@@ -173,6 +179,11 @@ const DirectChat = () => {
         }
     };
 
+    const handleStartCall = (type) => {
+        if (!otherUser) return;
+        initiateCall(otherUser.id, otherUser.username, type);
+    };
+
     const formatTime = (ts) => {
         if (!ts) return '';
         const date = ts.toDate ? ts.toDate() : new Date(ts);
@@ -197,7 +208,13 @@ const DirectChat = () => {
                     </div>
                     <h3>{otherUser?.username || 'Student'}</h3>
                 </div>
-                <div className="dc-header-actions">
+                <div className="dc-header-actions" ref={optionsRef}>
+                    <button className="dc-call" title="Audio Call" onClick={() => handleStartCall('audio')}>
+                        <Phone size={20} />
+                    </button>
+                    <button className="dc-video-call" title="Video Call" onClick={() => handleStartCall('video')}>
+                        <Video size={20} />
+                    </button>
                     <button className="dc-more" onClick={() => setShowOptions(!showOptions)}>
                         <MoreHorizontal size={24} />
                     </button>

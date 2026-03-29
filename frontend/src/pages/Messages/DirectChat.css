@@ -35,7 +35,7 @@
     background: #efefef;
 }
 
-.dc-more {
+.dc-more, .dc-call, .dc-video-call {
     background: none;
     border: none;
     cursor: pointer;
@@ -48,7 +48,7 @@
     justify-content: center;
 }
 
-.dc-more:hover {
+.dc-more:hover, .dc-call:hover, .dc-video-call:hover {
     background: #efefef;
 }
 
@@ -220,6 +220,9 @@
 /* Options & Unsend Styles */
 .dc-header-actions {
     position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .dc-options-dropdown {
