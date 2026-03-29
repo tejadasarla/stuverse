@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { User, Mail, Calendar, MapPin, Award, BookOpen, LogOut, Edit3, X, Save, Camera } from 'lucide-react';
+import { User, Mail, Calendar, MapPin, Award, BookOpen, LogOut, Edit3, X, Save, Camera, MessageSquare, Trash2 } from 'lucide-react';
 import { auth, db, storage } from '../../firebase.config';
-import { signOut } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { signOut, deleteUser } from 'firebase/auth';
+import { doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { useNavigate } from 'react-router-dom';
 import './Profile.css';
 
 const Profile = () => {
-    const { user, userData, refreshUserData, openAuthModal, loading } = useAuth();
+    const { userId } = useParams();
+    const { user, userData, refreshUserData, openAuthModal, loading: authLoading } = useAuth();
     const navigate = useNavigate();
+    
+    const [viewedUser, setViewedUser] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState({
         username: '',
@@ -29,6 +33,8 @@ const Profile = () => {
     const [removePhoto, setRemovePhoto] = useState(false);
     const [selectedPreset, setSelectedPreset] = useState(null);
 
+    const isOwnProfile = !userId || userId === user?.uid;
+
     const girlPresets = [
         { id: 'girl1', path: '/avatars/girl1.png', label: 'Student 1' },
         { id: 'girl2', path: '/avatars/girl2.png', label: 'Student 2' },
@@ -41,20 +47,43 @@ const Profile = () => {
     ];
 
     useEffect(() => {
-        if (userData) {
-            setEditData({
-                username: userData.username || '',
-                fullName: userData.fullName || '',
-                location: userData.location || 'Global Stuverse',
-                dob: userData.dob || '',
-                branch: userData.branch || '',
-                yearOfStudy: userData.yearOfStudy || '',
-                academicYears: userData.academicYears || '',
-                collegeName: userData.collegeName || '',
-                interests: userData.interests || ''
-            });
-        }
-    }, [userData]);
+        const fetchUserData = async () => {
+            setLoading(true);
+            if (isOwnProfile) {
+                if (userData) {
+                    setViewedUser(userData);
+                    setEditData({
+                        username: userData.username || '',
+                        fullName: userData.fullName || '',
+                        location: userData.location || 'Global Stuverse',
+                        dob: userData.dob || '',
+                        branch: userData.branch || '',
+                        yearOfStudy: userData.yearOfStudy || '',
+                        academicYears: userData.academicYears || '',
+                        collegeName: userData.collegeName || '',
+                        interests: userData.interests || ''
+                    });
+                }
+                setLoading(authLoading);
+            } else {
+                try {
+                    const userRef = doc(db, 'users', userId);
+                    const userSnap = await getDoc(userRef);
+                    if (userSnap.exists()) {
+                        setViewedUser(userSnap.data());
+                    } else {
+                        console.error("User not found");
+                    }
+                } catch (err) {
+                    console.error("Error fetching profile:", err);
+                } finally {
+                    setLoading(false);
+                }
+            }
+        };
+
+        fetchUserData();
+    }, [userId, userData, authLoading, isOwnProfile]);
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -134,14 +163,61 @@ const Profile = () => {
         }
     };
 
+    const handleDeleteAccount = async () => {
+        const confirmed = window.confirm(
+            "CRITICAL: Are you sure you want to delete your Stuverse account? \n\n" +
+            "This will permanently erase your profile and all personal data. This action CANNOT be undone."
+        );
+        
+        if (!confirmed) return;
+
+        setUpdating(true);
+        try {
+            // 1. Delete user document from Firestore
+            await deleteDoc(doc(db, 'users', user.uid));
+            
+            // 2. Delete profile image from storage if exists
+            try {
+                const storageRef = ref(storage, `profiles/${user.uid}`);
+                await deleteObject(storageRef);
+            } catch (err) {
+                console.log("No profile image found to delete", err);
+            }
+
+            // 3. Delete the Auth account
+            // Note: deleteUser() requires a recently signed-in user. 
+            // If it fails with 'requires-recent-login', we might need to ask them to logout/login.
+            await deleteUser(user);
+            
+            alert("Account deleted successfully. We're sad to see you go!");
+            navigate('/login');
+        } catch (error) {
+            console.error('Delete account error:', error);
+            if (error.code === 'auth/requires-recent-login') {
+                alert("For security, you must log out and log back in before deleting your account.");
+            } else {
+                alert(`Error deleting account: ${error.message}`);
+            }
+        } finally {
+            setUpdating(false);
+        }
+    };
+
+    const handleSendMessage = () => {
+        if (!user) {
+            alert("Please login to message other students!");
+            return;
+        }
+        // Unique Chat ID for two specific users
+        const chatId = [user.uid, userId].sort().join('_');
+        navigate(`/messages/${chatId}`);
+    };
+
+
     const handleUpdateProfile = async (e) => {
         e.preventDefault();
         setUpdating(true);
-        if (!user || !user.uid) {
-            alert('User session not found. Please log in again.');
-            setUpdating(false);
-            return;
-        }
+        if (!user || !user.uid) return;
 
         try {
             let photoURL = userData?.photoURL || '';
@@ -159,46 +235,43 @@ const Profile = () => {
                     const storageRef = ref(storage, `profiles/${user.uid}`);
                     await deleteObject(storageRef);
                 } catch (err) {
-                    console.log("Photo not found in storage or already deleted", err);
+                    console.log("Photo not found in storage or deleted", err);
                 }
             }
 
             const userRef = doc(db, 'users', user.uid);
             await setDoc(userRef, {
-                username: editData.username,
-                fullName: editData.fullName,
-                location: editData.location,
-                dob: editData.dob,
-                branch: editData.branch,
-                yearOfStudy: editData.yearOfStudy,
-                academicYears: editData.academicYears,
-                collegeName: editData.collegeName,
-                interests: editData.interests,
+                ...editData,
                 photoURL: photoURL
             }, { merge: true });
             await refreshUserData();
-            setImageFile(null);
-            setImagePreview(null);
-            setRemovePhoto(false);
             setIsEditing(false);
+            setImagePreview(null);
             alert('Profile updated successfully!');
         } catch (error) {
             console.error('Update error:', error);
-            alert(`Failed to update profile: ${error.message}`);
+            alert(`Failed: ${error.message}`);
         } finally {
             setUpdating(false);
         }
     };
 
-    useEffect(() => {
-        if (!user && !loading) {
-            navigate('/');
-            openAuthModal('login', true);
-        }
-    }, [user, loading, navigate, openAuthModal]);
+    if (loading) {
+        return (
+            <div className="profile-loading-screen">
+                <div className="loader"></div>
+                <p>Decoding student profile...</p>
+            </div>
+        );
+    }
 
-    if (!user) {
-        return null; // The useEffect will handle the redirect
+    if (!viewedUser && !isOwnProfile) {
+        return (
+            <div className="profile-not-found">
+                <h2>User not found</h2>
+                <button onClick={() => navigate('/search')}>Go back to Search</button>
+            </div>
+        );
     }
 
     return (
@@ -207,14 +280,14 @@ const Profile = () => {
                 <div className="profile-card">
                     <div className="profile-header">
                         <div className="profile-avatar-large">
-                            {userData?.photoURL ? (
-                                <img src={userData.photoURL} alt="Profile" className="avatar-img" />
+                            {viewedUser?.photoURL ? (
+                                <img src={viewedUser.photoURL} alt="Profile" className="avatar-img" />
                             ) : (
-                                <span>{userData?.username ? userData.username[0].toUpperCase() : 'U'}</span>
+                                <span>{viewedUser?.username ? viewedUser.username[0].toUpperCase() : 'U'}</span>
                             )}
                         </div>
                         <div className="profile-title">
-                            <h1>{userData?.username || 'User'}</h1>
+                            <h1>{viewedUser?.username || 'User'}</h1>
                             <p className="profile-role">Student Member</p>
                         </div>
                     </div>
@@ -222,115 +295,82 @@ const Profile = () => {
                     <div className="profile-content">
                         <div className="info-section">
                             <div className="section-header-flex">
-                                <h2>Personal Information</h2>
-                                <button className="edit-icon-btn" onClick={() => setIsEditing(true)}>
-                                    <Edit3 size={18} /> Edit
-                                </button>
+                                <h2>{isOwnProfile ? 'Your Personal Space' : `${viewedUser?.username}'s Profile`}</h2>
+                                {isOwnProfile && (
+                                    <button className="edit-icon-btn" onClick={() => setIsEditing(true)}>
+                                        <Edit3 size={18} /> Edit
+                                    </button>
+                                )}
                             </div>
-                            <div className="info-grid">
+                            <div className="info-grid personal-vibe">
                                 <div className="info-item">
                                     <User className="info-icon" />
-                                    <div>
-                                        <label>Full Name</label>
-                                        <p>{userData?.fullName || 'Not provided'}</p>
-                                    </div>
-                                </div>
-                                <div className="info-item">
-                                    <User className="info-icon" />
-                                    <div>
-                                        <label>Username</label>
-                                        <p>{userData?.username || 'Not provided'}</p>
-                                    </div>
-                                </div>
-                                <div className="info-item">
-                                    <Mail className="info-icon" />
-                                    <div>
-                                        <label>Email Address</label>
-                                        <p>{user.email}</p>
-                                    </div>
-                                </div>
-                                <div className="info-item">
-                                    <Calendar className="info-icon" />
-                                    <div>
-                                        <label>Joined Since</label>
-                                        <p>{userData?.createdAt ? new Date(userData.createdAt.seconds * 1000).toLocaleDateString() : 'N/A'}</p>
-                                    </div>
-                                </div>
-                                <div className="info-item">
-                                    <MapPin className="info-icon" />
                                     <div>
                                         <label>College Name</label>
-                                        <p>{userData?.collegeName || 'Not provided'}</p>
+                                        <p>{viewedUser?.collegeName || 'Inter-College Explorer'}</p>
                                     </div>
                                 </div>
                                 <div className="info-item">
                                     <BookOpen className="info-icon" />
                                     <div>
-                                        <label>Branch / Major</label>
-                                        <p>{userData?.branch || 'Not provided'}</p>
+                                        <label>Specialization</label>
+                                        <p>{viewedUser?.branch || 'Multiple Interests'}</p>
                                     </div>
                                 </div>
                                 <div className="info-item">
                                     <Award className="info-icon" />
                                     <div>
                                         <label>Year of Study</label>
-                                        <p>{userData?.yearOfStudy || 'Not provided'}</p>
+                                        <p>{viewedUser?.yearOfStudy || 'Not mentioned'}</p>
                                     </div>
                                 </div>
                                 <div className="info-item">
                                     <Calendar className="info-icon" />
                                     <div>
-                                        <label>Academic Years</label>
-                                        <p>{userData?.academicYears || 'Not provided'}</p>
-                                    </div>
-                                </div>
-                                <div className="info-item">
-                                    <Calendar className="info-icon" />
-                                    <div>
-                                        <label>Date of Birth</label>
-                                        <p>{userData?.dob ? userData.dob.split('-').reverse().join('/') : 'Not provided'}</p>
+                                        <label>Education Cycle</label>
+                                        <p>{viewedUser?.academicYears || 'Not visible'}</p>
                                     </div>
                                 </div>
                                 <div className="info-item">
                                     <MapPin className="info-icon" />
                                     <div>
-                                        <label>Location</label>
-                                        <p>{userData?.location || 'Global Stuverse'}</p>
+                                        <label>Vibe Check (Location)</label>
+                                        <p>{viewedUser?.location || 'Global Stuverse'}</p>
                                     </div>
                                 </div>
-                                <div className="info-item">
+                                <div className="info-item full-width-interests">
                                     <Award className="info-icon" style={{ color: '#00d2ff' }} />
                                     <div>
-                                        <label>Interests</label>
-                                        <p>{userData?.interests || 'Not provided'}</p>
+                                        <label>Passions & Interests</label>
+                                        <p className="interests-pillbox">{viewedUser?.interests || 'No passions shared yet'}</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="stats-section">
-                            <div className="stat-card">
-                                <Award className="stat-icon" />
-                                <h3>Badges</h3>
-                                <p>5 earned</p>
+                        {!isOwnProfile && (
+                            <div className="connection-section">
+                                <button className="connect-message-btn" onClick={handleSendMessage}>
+                                    <MessageSquare size={20} /> Send Message & Connect
+                                </button>
                             </div>
-                            <div className="stat-card">
-                                <BookOpen className="stat-icon" />
-                                <h3>Communities</h3>
-                                <p>3 joined</p>
-                            </div>
-                        </div>
+                        )}
 
-                        <div className="profile-actions">
-                            <button className="logout-btn" onClick={handleLogout}>
-                                <LogOut size={18} /> Logout
-                            </button>
-                        </div>
+                        {isOwnProfile && (
+                            <div className="profile-actions">
+                                <button className="logout-btn" onClick={handleLogout}>
+                                    <LogOut size={18} /> Logout
+                                </button>
+                                <button className="delete-account-btn" onClick={handleDeleteAccount} disabled={updating}>
+                                    <Trash2 size={18} /> {updating ? 'Deleting...' : 'Delete Account'}
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
 
-            {/* Edit Profile Modal */}
+            {/* Edit Profile Modal (Reused) */}
             {isEditing && (
                 <div className="modal-overlay">
                     <div className="edit-modal">
@@ -366,21 +406,13 @@ const Profile = () => {
                                     accept="image/*"
                                     onChange={handleImageChange}
                                 />
-                                <div style={{ display: 'flex', gap: '15px', marginTop: '8px' }}>
-                                    <p className="upload-hint" style={{ cursor: 'pointer', color: '#6a11cb' }}>Click circle to upload</p>
-                                    {(userData?.photoURL || imagePreview) && !removePhoto && (
-                                        <p className="upload-hint" onClick={handleRemovePhoto} style={{ cursor: 'pointer', color: '#ef4444' }}>| Remove Picture</p>
-                                    )}
-                                </div>
                             </div>
 
                             <div className="avatar-presets-container">
                                 <label className="preset-label">Choose a Professional Avatar</label>
-                                
                                 <div className="preset-group">
-                                    <span className="preset-subtitle">Student Stylings (Girls)</span>
                                     <div className="preset-grid">
-                                        {girlPresets.map(preset => (
+                                        {[...girlPresets, ...boyPresets].map(preset => (
                                             <div 
                                                 key={preset.id} 
                                                 className={`preset-item ${imagePreview === preset.path ? 'active' : ''}`}
@@ -391,103 +423,46 @@ const Profile = () => {
                                         ))}
                                     </div>
                                 </div>
+                            </div>
 
-                                <div className="preset-group">
-                                    <span className="preset-subtitle">Student Stylings (Boys)</span>
-                                    <div className="preset-grid">
-                                        {boyPresets.map(preset => (
-                                            <div 
-                                                key={preset.id} 
-                                                className={`preset-item ${imagePreview === preset.path ? 'active' : ''}`}
-                                                onClick={() => handleSelectPreset(preset.path)}
-                                            >
-                                                <img src={preset.path} alt={preset.label} />
-                                            </div>
-                                        ))}
-                                    </div>
+                            <div className="form-grid-modal">
+                                <div className="form-group">
+                                    <label>Display Name</label>
+                                    <input type="text" value={editData.username} onChange={(e) => setEditData({ ...editData, username: e.target.value })} required />
+                                </div>
+                                <div className="form-group">
+                                    <label>Full Name</label>
+                                    <input type="text" value={editData.fullName} onChange={(e) => setEditData({ ...editData, fullName: e.target.value })} />
+                                </div>
+                                <div className="form-group">
+                                    <label>College Name</label>
+                                    <input type="text" value={editData.collegeName} onChange={(e) => setEditData({ ...editData, collegeName: e.target.value })} />
+                                </div>
+                                <div className="form-group">
+                                    <label>Branch</label>
+                                    <input type="text" value={editData.branch} onChange={(e) => setEditData({ ...editData, branch: e.target.value })} />
+                                </div>
+                                <div className="form-group">
+                                    <label>Year of Study</label>
+                                    <input type="text" value={editData.yearOfStudy} onChange={(e) => setEditData({ ...editData, yearOfStudy: e.target.value })} />
+                                </div>
+                                <div className="form-group">
+                                    <label>Location</label>
+                                    <input type="text" value={editData.location} onChange={(e) => setEditData({ ...editData, location: e.target.value })} />
                                 </div>
                             </div>
-                            <div className="form-group">
-                                <label>Username</label>
-                                <input
-                                    type="text"
-                                    value={editData.username}
-                                    onChange={(e) => setEditData({ ...editData, username: e.target.value })}
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Full Name</label>
-                                <input
-                                    type="text"
-                                    value={editData.fullName}
-                                    placeholder="e.g. John Doe"
-                                    onChange={(e) => setEditData({ ...editData, fullName: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>College Name</label>
-                                <input
-                                    type="text"
-                                    value={editData.collegeName}
-                                    onChange={(e) => setEditData({ ...editData, collegeName: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Branch</label>
-                                <input
-                                    type="text"
-                                    value={editData.branch}
-                                    onChange={(e) => setEditData({ ...editData, branch: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Year of Study</label>
-                                <input
-                                    type="text"
-                                    value={editData.yearOfStudy}
-                                    placeholder="e.g. 3rd Year"
-                                    onChange={(e) => setEditData({ ...editData, yearOfStudy: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Academic Years</label>
-                                <input
-                                    type="text"
-                                    value={editData.academicYears}
-                                    placeholder="e.g. 2020-2024"
-                                    onChange={(e) => setEditData({ ...editData, academicYears: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Date of Birth</label>
-                                <input
-                                    type="date"
-                                    value={editData.dob}
-                                    onChange={(e) => setEditData({ ...editData, dob: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Location</label>
-                                <input
-                                    type="text"
-                                    value={editData.location}
-                                    onChange={(e) => setEditData({ ...editData, location: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Interests</label>
-                                <textarea
-                                    value={editData.interests}
-                                    placeholder="e.g. Coding, Music, Sports"
+                            
+                            <div className="form-group" style={{ marginBottom: '20px' }}>
+                                <label>Bio / Interests</label>
+                                <textarea 
+                                    value={editData.interests} 
                                     onChange={(e) => setEditData({ ...editData, interests: e.target.value })}
-                                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', minHeight: '80px' }}
                                 />
                             </div>
+
                             <div className="modal-footer">
-                                <button type="button" className="cancel-btn" onClick={() => setIsEditing(false)}>Cancel</button>
                                 <button type="submit" className="save-btn" disabled={updating}>
-                                    {updating ? 'Saving...' : <><Save size={18} /> Save Changes</>}
+                                    {updating ? 'Saving...' : <><Save size={18} /> Update Profile</>}
                                 </button>
                             </div>
                         </form>

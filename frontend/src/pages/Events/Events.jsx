@@ -1,68 +1,73 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { collection, onSnapshot, query, orderBy, addDoc } from 'firebase/firestore';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { db } from '../../firebase.config';
-import { Calendar, MapPin, Users, Clock } from 'lucide-react';
+import { collection, doc, updateDoc, deleteDoc, arrayUnion, onSnapshot, query, orderBy, getDoc } from 'firebase/firestore';
+import CreateEventModal from './CreateEventModal';
+import { PlusCircle, Calendar, MapPin, Globe, Users, Clock, Shield, Search, Filter, Trash2, Edit, X } from 'lucide-react';
 import './Events.css';
 
-const EventCard = ({ event, index }) => {
-    const cardRef = useRef(null);
+const ParticipantsModal = ({ participants, isOpen, onClose }) => {
+    const [participantNames, setParticipantNames] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const observer = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                        // Stop observing once animated
-                        observer.unobserve(entry.target);
-                    }
-                });
-            },
-            { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
-        );
-
-        if (cardRef.current) {
-            observer.observe(cardRef.current);
+        if (isOpen && participants?.length > 0) {
+            const fetchNames = async () => {
+                const names = await Promise.all(
+                    participants.map(async (uid) => {
+                        const userDoc = await getDoc(doc(db, 'users', uid));
+                        return userDoc.exists() ? userDoc.data().username : 'Unknown User';
+                    })
+                );
+                setParticipantNames(names);
+                setLoading(false);
+            };
+            fetchNames();
         }
+    }, [isOpen, participants]);
 
-        return () => observer.disconnect();
-    }, []);
-
-    // Helper formatting
-    const eventDate = event.date ? new Date(event.date) : new Date();
+    if (!isOpen) return null;
 
     return (
-        <div ref={cardRef} className="event-card hidden" style={{ transitionDelay: `${(index % 3) * 0.1}s` }}>
-            <div className="event-banner">
-                <img src={event.bannerUrl || 'https://images.unsplash.com/photo-1540317580384-e5d43867caa6?auto=format&fit=crop&q=80&w=800'} alt={event.title} />
-                <div className="event-date-badge">
-                    <span className="month">{eventDate.toLocaleString('default', { month: 'short' })}</span>
-                    <span className="day">{eventDate.getDate()}</span>
+        <div className="modal-overlay">
+            <div className="participants-modal">
+                <div className="modal-header">
+                    <h3>Event Participants ({participants?.length || 0})</h3>
+                    <button className="close-btn" onClick={onClose}><X size={20} /></button>
                 </div>
-            </div>
-            <div className="event-content">
-                <h3 className="event-title">{event.title}</h3>
-                <p className="event-organizer">Organized by: <span>{event.organizerName || 'Student Council'}</span></p>
-                <div className="event-details-grid">
-                    <div className="detail-item"><Clock size={16} /> <span>{event.time || '10:00 AM'}</span></div>
-                    <div className="detail-item"><MapPin size={16} /> <span>{event.location || 'Campus Main Hall'}</span></div>
-                    <div className="detail-item"><Users size={16} /> <span>{event.attendees || 0} Attending</span></div>
+                <div className="participants-list">
+                    {loading ? <p>Loading members...</p> : (
+                        participantNames.map((name, i) => (
+                            <div key={i} className="participant-item">
+                                <span className="p-avatar">{name[0].toUpperCase()}</span>
+                                <span className="p-name">{name}</span>
+                            </div>
+                        ))
+                    )}
                 </div>
-                <p className="event-description">{event.description}</p>
-                <button className="register-btn">Register Now</button>
             </div>
         </div>
     );
 };
 
 const Events = () => {
+    const { user, userData } = useAuth();
+    const navigate = useNavigate();
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingEvent, setEditingEvent] = useState(null);
+    const [viewingParticipants, setViewingParticipants] = useState(null);
+    
+    // Filters
+    const [categoryFilter, setCategoryFilter] = useState('All');
+    const [modeFilter, setModeFilter] = useState('All');
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
-        // Fetch events directly from Firebase Backend
-        const q = query(collection(db, 'events'), orderBy('date', 'asc'));
-
+        const q = query(collection(db, 'events'), orderBy('createdAt', 'desc'));
+        
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const eventsData = snapshot.docs.map(doc => ({
                 id: doc.id,
@@ -71,93 +76,206 @@ const Events = () => {
             setEvents(eventsData);
             setLoading(false);
         }, (error) => {
-            console.error("Error fetching connecting to backend:", error);
+            console.error("Error fetching events:", error);
             setLoading(false);
         });
 
         return () => unsubscribe();
     }, []);
 
-    const seedDemoEvents = async () => {
-        const mockDb = [
-            {
-                title: "Tech Innovation Hackathon",
-                organizerName: "Computer Science Society",
-                date: new Date(Date.now() + 86400000 * 5).toISOString(),
-                time: "09:00 AM - 09:00 PM",
-                location: "Innovation Hub",
-                attendees: 125,
-                description: "Join us for 12 hours of non-stop coding, building, and innovating. Prizes worth $5000 up for grabs!",
-                bannerUrl: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&q=80&w=800"
-            },
-            {
-                title: "Annual Cultural Fest 2026",
-                organizerName: "Arts & Drama Club",
-                date: new Date(Date.now() + 86400000 * 12).toISOString(),
-                time: "05:00 PM - 11:30 PM",
-                location: "Main Auditorium",
-                attendees: 450,
-                description: "A magical evening filled with performances, music, and food from diverse student groups across campus.",
-                bannerUrl: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=800"
-            },
-            {
-                title: "Robotics Workshop: Build Your First Bot",
-                organizerName: "Engineering Student Board",
-                date: new Date(Date.now() + 86400000 * 18).toISOString(),
-                time: "02:00 PM - 04:00 PM",
-                location: "Engineering Lab 304",
-                attendees: 30,
-                description: "Learn the basics of microcontrollers and motors. No prior experience required. All materials provided!",
-                bannerUrl: "https://images.unsplash.com/photo-1561557944-6e7860d1a7e2?auto=format&fit=crop&q=80&w=800"
-            },
-            {
-                title: "Startup Pitch Night",
-                organizerName: "Entrepreneurship Cell",
-                date: new Date(Date.now() + 86400000 * 25).toISOString(),
-                time: "06:00 PM - 09:00 PM",
-                location: "Business School Theatre",
-                attendees: 200,
-                description: "Watch student founders pitch their latest ideas to a panel of expert judges and local investors. Networking session to follow.",
-                bannerUrl: "https://images.unsplash.com/photo-1475721028070-1200bc0bfab5?auto=format&fit=crop&q=80&w=800"
-            }
-        ];
+    const handleJoinEvent = async (eventId, eventTitle) => {
+        if (!user) return alert("Please login to join events");
 
         try {
-            for (let event of mockDb) {
-                await addDoc(collection(db, 'events'), event);
-            }
+            const eventRef = doc(db, 'events', eventId);
+            await updateDoc(eventRef, {
+                participants: arrayUnion(user.uid)
+            });
+            alert(`You have successfully joined "${eventTitle}"!`);
         } catch (error) {
-            console.error("Failed to seed demo events:", error);
-            alert("Ensure your Firestore security rules allow writes to the 'events' collection to run the demo generator.");
+            console.error("Error joining event:", error);
+            alert("Failed to join event: " + error.message);
         }
     };
 
-    return (
-        <div className="events-page-container">
-            <div className="events-hero">
-                <h1>Student Events</h1>
-                <p>Discover and register for amazing events hosted by students across the campus.</p>
-            </div>
+    const handleDeleteEvent = async (eventId, title) => {
+        if (!window.confirm(`Are you sure you want to cancel the event "${title}"?`)) return;
+        try {
+            await deleteDoc(doc(db, 'events', eventId));
+            alert("Event deleted successfully.");
+        } catch (err) {
+            alert("Error deleting event: " + err.message);
+        }
+    };
 
-            <div className="events-main-content">
-                {loading ? (
-                    <div className="loading-spinner">Loading backend events...</div>
-                ) : events.length === 0 ? (
-                    <div className="no-events-found">
-                        <h2>No active events found in the database!</h2>
-                        <p>It looks like the <code>events</code> collection is empty.</p>
-                        <button onClick={seedDemoEvents} className="demo-seed-btn">
-                            Initialize Backend with Demo Events
+    const formatDateTime = (dateTime) => {
+        if (!dateTime) return 'TBA';
+        const date = new Date(dateTime);
+        return date.toLocaleString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+    const filteredEvents = events.filter(event => {
+        const matchesCategory = categoryFilter === 'All' || event.category === categoryFilter;
+        const matchesMode = modeFilter === 'All' || event.mode === modeFilter;
+        const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                            event.description.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesCategory && matchesMode && matchesSearch;
+    });
+
+    const categories = ['All', 'Tech', 'Cultural', 'Sports', 'Academic', 'Workshop', 'Social'];
+
+    return (
+        <div className="events-page">
+            <header className="events-hero">
+                <h1>Campus Student Events</h1>
+                <p>Host workshops, hackathons, and social gatherings. Start your own event today!</p>
+                
+                {user && (
+                    <div className="header-actions">
+                        <button className="create-btn-main" onClick={() => { setEditingEvent(null); setIsModalOpen(true); }}>
+                            <PlusCircle size={20} />
+                            Host Event
                         </button>
+                    </div>
+                )}
+            </header>
+
+            <main className="events-container">
+                <div className="events-filters-bar">
+                    <div className="search-box">
+                        <Search size={18} />
+                        <input 
+                            type="text" 
+                            placeholder="Search events..." 
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
+                    <div className="filters-group">
+                        <div className="filter-item">
+                            <label><Filter size={14} /> Category:</label>
+                            <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+                                {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                            </select>
+                        </div>
+                        <div className="filter-item">
+                            <label><Globe size={14} /> Mode:</label>
+                            <select value={modeFilter} onChange={(e) => setModeFilter(e.target.value)}>
+                                <option value="All">All</option>
+                                <option value="online">Online</option>
+                                <option value="offline">Offline</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                {loading ? (
+                    <div className="events-loading">
+                        <div className="loader"></div>
+                        <p>Syncing Events...</p>
+                    </div>
+                ) : filteredEvents.length === 0 ? (
+                    <div className="no-events">
+                        <Calendar size={48} />
+                        <h3>No events found</h3>
+                        <p>Try adjusting your filters or be the first to host an event!</p>
                     </div>
                 ) : (
                     <div className="events-grid">
-                        {events.map((event, index) => (
-                            <EventCard key={event.id} event={event} index={index} />
+                        {filteredEvents.map((event) => (
+                            <div key={event.id} className="event-card">
+                                <div className="event-banner">
+                                    <img 
+                                        src={event.banner || "https://images.unsplash.com/photo-1540317580384-e5d43867caa6?q=80&w=800"} 
+                                        alt={event.title} 
+                                    />
+                                    <div className={`event-mode-tag ${event.mode}`}>
+                                        {event.mode === 'online' ? <Globe size={14} /> : <MapPin size={14} />}
+                                        {event.mode.toUpperCase()}
+                                    </div>
+                                    <div className="event-cat-tag">{event.category}</div>
+                                </div>
+
+                                <div className="event-info">
+                                    <h3 className="event-title">{event.title}</h3>
+                                    
+                                    <div className="event-meta-grid">
+                                        <div className="meta-item">
+                                            <Calendar size={16} />
+                                            <span>{formatDateTime(event.dateTime)}</span>
+                                        </div>
+                                        <div className="meta-item">
+                                            <MapPin size={16} />
+                                            <span className="location-text" title={event.location}>{event.location}</span>
+                                        </div>
+                                        <div className="meta-item clickable" onClick={() => setViewingParticipants(event.participants)}>
+                                            <Users size={16} />
+                                            <span className="p-count-link">{event.participants?.length || 0} Participants</span>
+                                        </div>
+                                        <div className="meta-item">
+                                            <Shield size={16} />
+                                            <span>By {event.creatorName}</span>
+                                        </div>
+                                    </div>
+
+                                    <p className="event-description">{event.description}</p>
+
+                                    <div className="event-actions">
+                                        {event.participants?.includes(user?.uid) ? (
+                                            <button className="join-btn-event joined" disabled>
+                                                Joined √
+                                            </button>
+                                        ) : (
+                                            <button 
+                                                className="join-btn-event"
+                                                onClick={() => handleJoinEvent(event.id, event.title)}
+                                            >
+                                                Join Event
+                                            </button>
+                                        )}
+                                        {event.createdBy === user?.uid && (
+                                            <div className="admin-actions">
+                                                <button 
+                                                    className="manage-event-btn edit" 
+                                                    onClick={() => { setEditingEvent(event); setIsModalOpen(true); }}
+                                                    title="Modify Event"
+                                                >
+                                                    <Edit size={18} />
+                                                </button>
+                                                <button 
+                                                    className="manage-event-btn delete" 
+                                                    onClick={() => handleDeleteEvent(event.id, event.title)}
+                                                    title="Cancel Event"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
                         ))}
                     </div>
                 )}
-            </div>
+            </main>
+
+            <CreateEventModal 
+                isOpen={isModalOpen} 
+                onClose={() => setIsModalOpen(false)} 
+                editingEvent={editingEvent}
+            />
+
+            <ParticipantsModal 
+                isOpen={!!viewingParticipants}
+                participants={viewingParticipants}
+                onClose={() => setViewingParticipants(null)}
+            />
         </div>
     );
 };

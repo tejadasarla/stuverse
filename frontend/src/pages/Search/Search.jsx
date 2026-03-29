@@ -22,23 +22,6 @@ const Search = () => {
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('all');
 
-    // Mock data for channels and events since they are not in DB yet
-    const mockChannels = [
-        { id: '1', name: "Inter-College Tech Syndicate", category: "Tech", members: "1.2k" },
-        { id: '2', name: "Global Student Art Collective", category: "Art", members: "850" },
-        { id: '3', name: "Cross-Campus Coding Circle", category: "Coding", members: "3.4k" },
-        { id: '4', name: "Inter-University Startup Pulse", category: "Startup", members: "2.1k" },
-        { id: '5', name: "The Collegiate Vocalists", category: "Music", members: "1.5k" },
-        { id: '6', name: "The Multi-Campus Athletics League", category: "Sports", members: "5.6k" }
-    ];
-
-    const mockEvents = [
-        { id: 1, name: "Global Hackathon 2026", date: "April 15, 2026", location: "Virtual" },
-        { id: 2, name: "Student Art Expo", date: "May 20, 2026", location: "New York Hub" },
-        { id: 3, name: "Inter-College Cricket Cup", date: "June 10, 2026", location: "London Grounds" },
-        { id: 4, name: "Tech Talk: Future of AI", date: "March 25, 2026", location: "Zoom" }
-    ];
-
     useEffect(() => {
         const fetchResults = async () => {
             if (!initialQuery.trim()) {
@@ -50,48 +33,50 @@ const Search = () => {
             try {
                 // 1. Search Students in Firestore
                 let studentResults = [];
-                if (user) {
-                    const usersRef = collection(db, 'users');
-
-                    // If user is logged in, only search students of the SAME YEAR
-                    let q;
-                    if (userData?.yearOfStudy) {
-                        q = query(usersRef, where('yearOfStudy', '==', userData.yearOfStudy));
-                    } else {
-                        // If user doesn't have a year set yet, show all or restricted
-                        q = query(usersRef);
+                const usersRef = collection(db, 'users');
+                
+                // Fetch students (optionally restricted by year, but searching by text)
+                const studentSnap = await getDocs(usersRef);
+                const students = [];
+                studentSnap.forEach((doc) => {
+                    const data = doc.data();
+                    if (doc.id !== user?.uid && 
+                        (data.username?.toLowerCase().includes(initialQuery.toLowerCase()) || 
+                         data.email?.toLowerCase().includes(initialQuery.toLowerCase()))) {
+                        students.push({ id: doc.id, ...data });
                     }
+                });
+                studentResults = students;
 
-                    const querySnapshot = await getDocs(q);
-                    const students = [];
-                    querySnapshot.forEach((doc) => {
-                        const data = doc.data();
-                        // Simple client-side search for name/username, excluding self
-                        if (doc.id !== user.uid &&
-                            (data.username?.toLowerCase().includes(initialQuery.toLowerCase()) ||
-                                data.email?.toLowerCase().includes(initialQuery.toLowerCase()))) {
-                            students.push({ id: doc.id, ...data });
-                        }
-                    });
-                    studentResults = students;
-                }
+                // 2. Search Communities (Channels) in Firestore
+                const commsRef = collection(db, 'communities');
+                const commSnap = await getDocs(commsRef);
+                const communityResults = [];
+                commSnap.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.name?.toLowerCase().includes(initialQuery.toLowerCase()) || 
+                        data.category?.toLowerCase().includes(initialQuery.toLowerCase()) ||
+                        data.college?.toLowerCase().includes(initialQuery.toLowerCase())) {
+                        communityResults.push({ id: doc.id, ...data });
+                    }
+                });
 
-                // 2. Search Channels (Mock)
-                const channelResults = mockChannels.filter(c =>
-                    c.name.toLowerCase().includes(initialQuery.toLowerCase()) ||
-                    c.category.toLowerCase().includes(initialQuery.toLowerCase())
-                );
-
-                // 3. Search Events (Mock)
-                const eventResults = mockEvents.filter(e =>
-                    e.name.toLowerCase().includes(initialQuery.toLowerCase()) ||
-                    e.location.toLowerCase().includes(initialQuery.toLowerCase())
-                );
+                // 3. Search Events in Firestore
+                const eventsRef = collection(db, 'events');
+                const eventSnap = await getDocs(eventsRef);
+                const eventResultsList = [];
+                eventSnap.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.title?.toLowerCase().includes(initialQuery.toLowerCase()) || 
+                        data.description?.toLowerCase().includes(initialQuery.toLowerCase())) {
+                        eventResultsList.push({ id: doc.id, ...data });
+                    }
+                });
 
                 setResults({
                     students: studentResults,
-                    channels: channelResults,
-                    events: eventResults
+                    channels: communityResults,
+                    events: eventResultsList
                 });
             } catch (error) {
                 console.error("Search error:", error);
@@ -103,6 +88,7 @@ const Search = () => {
         fetchResults();
         setSearchQuery(initialQuery);
     }, [initialQuery, userData, user]);
+
 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
@@ -199,13 +185,13 @@ const Search = () => {
                             </div>
                             <div className="result-info">
                                 <h3>{channel.name}</h3>
-                                <p>{channel.category}</p>
+                                <p>{channel.category} • {channel.college || 'Inter-College'}</p>
                                 <div className="result-meta">
-                                    <span>{channel.members} Members</span>
+                                    <span>{channel.memberCount || 0} Students</span>
                                 </div>
                             </div>
-                            <button className="join-btn-small" onClick={() => navigate('/communities')}>
-                                Visit
+                            <button className="join-btn-small" onClick={() => navigate(`/communities/${channel.id}`)}>
+                                Enter
                             </button>
                         </div>
                     ))
@@ -230,14 +216,14 @@ const Search = () => {
                                 <span className="date-icon"><Calendar size={20} /></span>
                             </div>
                             <div className="result-info">
-                                <h3>{event.name}</h3>
-                                <p>{event.date}</p>
+                                <h3>{event.title}</h3>
+                                <p>{new Date(event.dateTime).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</p>
                                 <div className="result-meta">
-                                    <span>{event.location}</span>
+                                    <span>{event.location} • {event.mode}</span>
                                 </div>
                             </div>
-                            <button className="view-event-btn">
-                                Details
+                            <button className="view-event-btn" onClick={() => navigate('/events')}>
+                                View
                             </button>
                         </div>
                     ))

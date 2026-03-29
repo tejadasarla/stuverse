@@ -10,8 +10,22 @@ const CreateCommunityModal = ({ isOpen, onClose }) => {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [category, setCategory] = useState('Tech');
+    const [college, setCollege] = useState('');
     const [banner, setBanner] = useState('');
     const [loading, setLoading] = useState(false);
+
+    const colleges = [
+        'CVR College of Engineering',
+        'Malla Reddy Engineering College',
+        'CBIT (Chaitanya Bharathi Institute of Technology)',
+        'VNR VJIET',
+        'BVRIT (B V Raju Institute of Technology)',
+        'Gokaraju Rangaraju Institute of Engineering and Technology',
+        'Guru Nanak Institutions Technical Campus',
+        "St. Peter's Engineering College",
+        'MGIT (Mahatma Gandhi Institute of Technology)',
+        'Institute of Aeronautical Engineering'
+    ];
 
     if (!isOpen) return null;
 
@@ -28,6 +42,7 @@ const CreateCommunityModal = ({ isOpen, onClose }) => {
                 name: name.trim(),
                 description: description.trim(),
                 category: category || 'General',
+                college: college || 'Open Community',
                 banner: banner || `https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=800&auto=format&fit=crop`,
                 adminId: user.uid,
                 creatorId: user.uid,
@@ -115,6 +130,16 @@ const CreateCommunityModal = ({ isOpen, onClose }) => {
                             <option value="Sports">Sports & Fitness</option>
                             <option value="Startup">Startup & Business</option>
                             <option value="Study">Study & Academics</option>
+                        </select>
+                    </div>
+
+                    <div className="form-group">
+                        <label>College Name</label>
+                        <select value={college} onChange={(e) => setCollege(e.target.value)}>
+                            <option value="">Open Community (Global)</option>
+                            {colleges.map(c => (
+                                <option key={c} value={c}>{c}</option>
+                            ))}
                         </select>
                     </div>
 

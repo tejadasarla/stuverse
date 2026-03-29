@@ -196,9 +196,56 @@
     flex-wrap: wrap;
 }
 
+/* Active Filter Banner */
+.active-filter-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #e0e7ff;
+    padding: 12px 25px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    border: 1px solid #c7d2fe;
+    animation: fadeIn 0.4s ease;
+}
+
+.filter-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #3730a3;
+    font-size: 0.95rem;
+}
+
+.filter-info strong {
+    color: #1e1b4b;
+}
+
+.clear-filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: white;
+    border: 1px solid #c7d2fe;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #4338ca;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.clear-filter-btn:hover {
+    background: #4338ca;
+    color: white;
+    border-color: #4338ca;
+}
+
 .nav-btn {
     padding: 10px 20px;
     border-radius: 50px;
+
     border: 1px solid rgba(0, 0, 0, 0.1);
     background: white;
     color: #64748b;

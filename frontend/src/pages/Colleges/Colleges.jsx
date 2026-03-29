@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Building2, MapPin, ExternalLink, Users } from 'lucide-react';
 import './Colleges.css';
 
@@ -47,7 +48,7 @@ const collegesData = [
     },
     {
         id: 'spec',
-        name: 'St. Peter\'s Engineering College',
+        name: "St. Peter's Engineering College",
         location: 'Maisammaguda, Hyderabad',
         description: 'Creating an inspiring environment for students to collaborate and grow in latest domains.'
     },
@@ -66,6 +67,12 @@ const collegesData = [
 ];
 
 const Colleges = () => {
+    const navigate = useNavigate();
+
+    const handleViewCommunities = (collegeName) => {
+        navigate(`/communities?college=${encodeURIComponent(collegeName)}`);
+    };
+
     return (
         <div className="colleges-page">
             <div className="colleges-header">
@@ -87,7 +94,7 @@ const Colleges = () => {
                             <p className="college-desc">{college.description}</p>
                             
                             <div className="college-actions">
-                                <button className="view-students-btn">
+                                <button className="view-students-btn" onClick={() => handleViewCommunities(college.name)}>
                                     <Users size={16} /> View Communities
                                 </button>
                                 <button className="icon-btn">
@@ -103,3 +110,4 @@ const Colleges = () => {
 };
 
 export default Colleges;
+

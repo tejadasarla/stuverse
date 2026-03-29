@@ -240,6 +240,43 @@
     justify-content: flex-end;
 }
 
+.connection-section {
+    margin-top: 30px;
+    padding-top: 25px;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: center;
+}
+
+.connect-message-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 10px 20px rgba(106, 17, 203, 0.2);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    width: 100%;
+    max-width: 320px;
+    justify-content: center;
+}
+
+.connect-message-btn:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 15px 30px rgba(106, 17, 203, 0.3);
+    background: linear-gradient(135deg, #2575fc 0%, #6a11cb 100%);
+}
+
+.connect-message-btn:active {
+    transform: translateY(0) scale(0.98);
+}
+
 .edit-profile-btn {
     padding: 12px 25px;
     border-radius: 12px;
@@ -273,6 +310,25 @@
 .logout-btn:hover {
     background: #dc2626;
     box-shadow: 0 5px 15px rgba(239, 68, 68, 0.3);
+}
+
+.delete-account-btn {
+    padding: 12px 25px;
+    border-radius: 12px;
+    border: 1px solid #ef4444;
+    background: white;
+    color: #ef4444;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.delete-account-btn:hover {
+    background: #fee2e2;
+    box-shadow: 0 5px 15px rgba(239, 68, 68, 0.1);
 }
 
 /* Login Required State */

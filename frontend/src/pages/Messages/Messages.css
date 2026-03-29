@@ -1,0 +1,134 @@
+.messages-page {
+    padding: 20px;
+    background: #f8fafc;
+    min-height: 100vh;
+}
+
+.messages-container {
+    max-width: 600px;
+    margin: 40px auto;
+}
+
+.msg-list-header {
+    margin-bottom: 30px;
+}
+
+.msg-list-header h1 {
+    font-size: 2rem;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+.msg-list-header p {
+    color: #64748b;
+    font-size: 1.1rem;
+}
+
+.msg-loading {
+    display: flex;
+    justify-content: center;
+    padding: 50px;
+}
+
+.msg-empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.msg-empty-state h3 {
+    font-size: 1.3rem;
+    color: #1a202c;
+}
+
+.msg-empty-state p {
+    color: #718096;
+    margin-bottom: 25px;
+}
+
+.msg-empty-state button {
+    background: #4f46e5;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.chats-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.chat-card {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid transparent;
+}
+
+.chat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+    border-color: #cbd5e1;
+}
+
+.chat-avatar {
+    width: 50px;
+    height: 50px;
+    background: #e2e8f0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4f46e5;
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin-right: 15px;
+    overflow: hidden;
+}
+
+.chat-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.chat-info {
+    flex: 1;
+}
+
+.chat-info h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #1e293b;
+}
+
+.chat-info p {
+    margin: 3px 0 0;
+    font-size: 0.8rem;
+    color: #94a3b8;
+}
+
+.last-msg-preview {
+    margin-top: 5px !important;
+    font-size: 0.9rem !important;
+    color: #475569 !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 300px;
+}
+
+.chat-arrow {
+    color: #94a3b8;
+}

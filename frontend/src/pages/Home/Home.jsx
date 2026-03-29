@@ -1,21 +1,50 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { User, ArrowRight } from 'lucide-react';
+import { User, ArrowRight, Star } from 'lucide-react';
+import { db } from '../../firebase.config';
+import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import './Home.css';
 
 // Import local assets
 import heroStudents from '../../assets/hero-students.png';
-import mindFlayersImg from '../../assets/mind-flayers.png';
-import artsArtistImg from '../../assets/arts-artist.png';
-import strangerStudiesImg from '../../assets/stranger-studies.png';
 
 const Home = () => {
     const navigate = useNavigate();
-    const { user, userData, authModal, openAuthModal } = useAuth();
+    const { user, userData, openAuthModal } = useAuth();
+    const [topCommunities, setTopCommunities] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const handleJoinClick = () => {
-        navigate('/communities');
+    useEffect(() => {
+        const fetchPopular = async () => {
+            try {
+                const q = query(
+                    collection(db, 'communities'),
+                    orderBy('memberCount', 'desc'),
+                    limit(4)
+                );
+                const snapshot = await getDocs(q);
+                const communities = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                setTopCommunities(communities);
+            } catch (err) {
+                console.error("Error fetching popular tribes:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchPopular();
+    }, []);
+
+    const handleJoinClick = (e, communityId) => {
+        e.stopPropagation();
+        if (!user) {
+            openAuthModal('login');
+        } else {
+            navigate(`/communities/${communityId}`);
+        }
     };
 
     return (
@@ -112,78 +141,46 @@ const Home = () => {
                     </button>
                 </div>
 
-                <div className="communities-grid">
-                    <div className="community-card" onClick={() => navigate('/communities')}>
-                        <div className="card-image">
-                            <img src={mindFlayersImg} alt="Mind Flayers" />
-                            <span className="member-count">1.2k Members</span>
-                        </div>
-                        <div className="card-content">
-                            <div className="card-top">
-                                <img src="https://ui-avatars.com/api/?name=MF&background=1a1a1a&color=fff" alt="icon" className="community-icon" />
-                                <h3>Mind Flayers</h3>
-                            </div>
-                            <p>For developers, designers, and tech enthusiasts to share code.</p>
-                            <div className="card-footer">
-                                <button className="join-link" onClick={(e) => { e.stopPropagation(); openAuthModal('login'); }}>Join</button>
-                            </div>
-                        </div>
+                {loading ? (
+                    <div className="loading-grid">
+                        {[1, 2, 3, 4].map(i => <div key={i} className="skeleton-card"></div>)}
                     </div>
-
-                    <div className="community-card" onClick={() => navigate('/communities')}>
-                        <div className="card-image">
-                            <img src={artsArtistImg} alt="The Arts of an Artist" />
-                            <span className="member-count">850 Members</span>
-                        </div>
-                        <div className="card-content">
-                            <div className="card-top">
-                                <img src="https://ui-avatars.com/api/?name=AA&background=f0c&color=fff" alt="icon" className="community-icon" />
-                                <h3>The Arts of an Artist</h3>
+                ) : (
+                    <div className="communities-grid">
+                        {topCommunities.map((comm) => (
+                            <div key={comm.id} className="community-card" onClick={() => navigate(`/communities/${comm.id}`)}>
+                                <div className="card-image">
+                                    <img src={comm.banner || 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=800&auto=format&fit=crop'} alt={comm.name} />
+                                    <span className="member-count">{comm.memberCount || 0} Members</span>
+                                </div>
+                                <div className="card-content">
+                                    <div className="card-top">
+                                        <img 
+                                            src={comm.icon || `https://ui-avatars.com/api/?name=${encodeURIComponent(comm.name)}&background=random`} 
+                                            alt={comm.name} 
+                                            className="community-icon" 
+                                        />
+                                        <h3>{comm.name}</h3>
+                                    </div>
+                                    <p>{comm.description?.substring(0, 100)}{comm.description?.length > 100 ? '...' : ''}</p>
+                                    <div className="card-footer">
+                                        <div className="comm-badge">
+                                            <Star size={14} fill="#ffb800" color="#ffb800" />
+                                            <span>Popular</span>
+                                        </div>
+                                        <button className="join-link" onClick={(e) => handleJoinClick(e, comm.id)}>
+                                            {user && comm.members?.includes(user.uid) ? 'View' : 'Join'}
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
-                            <p>Painters, digital artists, and sculptors sharing their portfolio work.</p>
-                            <div className="card-footer">
-                                <button className="join-link" onClick={(e) => { e.stopPropagation(); openAuthModal('login'); }}>Join</button>
-                            </div>
-                        </div>
+                        ))}
                     </div>
-
-                    <div className="community-card" onClick={() => navigate('/communities')}>
-                        <div className="card-image">
-                            <img src={strangerStudiesImg} alt="Stranger Studies" />
-                            <span className="member-count">3.4k Members</span>
-                        </div>
-                        <div className="card-content">
-                            <div className="card-top">
-                                <img src="https://ui-avatars.com/api/?name=SS&background=444&color=fff" alt="icon" className="community-icon" />
-                                <h3>Stranger Studies</h3>
-                            </div>
-                            <p>Find study partners for exams, assignments, and research.</p>
-                            <div className="card-footer">
-                                <button className="join-link" onClick={(e) => { e.stopPropagation(); openAuthModal('login'); }}>Join</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="community-card" onClick={() => navigate('/communities')}>
-                        <div className="card-image">
-                            <img src="https://images.unsplash.com/photo-1511379938547-c1f69419868d?q=80&w=400&auto=format&fit=crop" alt="Vocalists" />
-                            <span className="member-count">920 Members</span>
-                        </div>
-                        <div className="card-content">
-                            <div className="card-top">
-                                <img src="https://ui-avatars.com/api/?name=V&background=222&color=fff" alt="icon" className="community-icon" />
-                                <h3>Vocalists</h3>
-                            </div>
-                            <p>Jam sessions, concert buddies, and music production talk.</p>
-                            <div className="card-footer">
-                                <button className="join-link" onClick={(e) => { e.stopPropagation(); openAuthModal('login'); }}>Join</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                )}
             </section>
         </div>
     );
 };
+
 
 export default Home;

@@ -50,13 +50,18 @@ const Navbar = () => {
             </div>
             <div className="navbar-auth">
                 {user ? (
-                    <Link to="/profile" className="profile-link">
-                        <div className="profile-icon-wrapper">
-                            <span className="user-initials">
-                                {userData?.username ? userData.username[0].toUpperCase() : 'U'}
-                            </span>
-                        </div>
-                    </Link>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                        <Link to="/messages" className="nav-icon-link" title="Messages">
+                            <MessageSquare size={24} color="#64748b" />
+                        </Link>
+                        <Link to="/profile" className="profile-link">
+                            <div className="profile-icon-wrapper">
+                                <span className="user-initials">
+                                    {userData?.username ? userData.username[0].toUpperCase() : 'U'}
+                                </span>
+                            </div>
+                        </Link>
+                    </div>
                 ) : (
                     <>
                         <button onClick={() => openAuthModal('login')} className="login-link-btn">Log-in</button>

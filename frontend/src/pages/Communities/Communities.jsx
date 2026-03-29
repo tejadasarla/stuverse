@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { db } from '../../firebase.config';
 import { collection, doc, updateDoc, arrayUnion, arrayRemove, onSnapshot, query, orderBy, increment } from 'firebase/firestore';
 import CreateCommunityModal from './CreateCommunityModal';
-import { Plus, Users, Shield, PlusCircle, LayoutDashboard, Globe, LogOut } from 'lucide-react';
+import { Plus, Users, Shield, PlusCircle, LayoutDashboard, Globe, LogOut, X, School } from 'lucide-react';
 import './Communities.css';
 
 // Sub-component to fetch admin name dynamically
@@ -29,6 +29,9 @@ const AdminName = ({ adminId, initialName, currentUserId }) => {
 const Communities = () => {
     const { user, userData, refreshUserData } = useAuth();
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const collegeParam = searchParams.get('college');
+
     const [communities, setCommunities] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -38,12 +41,10 @@ const Communities = () => {
         const q = query(collection(db, 'communities'), orderBy('createdAt', 'desc'));
         
         const unsubscribe = onSnapshot(q, (snapshot) => {
-            console.log("Current userData.communities:", userData?.communities);
             const comms = snapshot.docs.map(doc => {
                 const data = doc.data();
                 const isMember = userData?.communities?.includes(doc.id);
                 const isAdmin = data.adminId === user?.uid;
-                console.log(`Community ${data.name}: isMember=${isMember}, isAdmin=${isAdmin}`);
                 return {
                     id: doc.id,
                     ...data,
@@ -58,7 +59,7 @@ const Communities = () => {
         });
 
         return () => unsubscribe();
-    }, [userData]);
+    }, [userData, user]);
 
     const handleLeaveCommunity = async (id, name) => {
         if (!window.confirm(`Are you sure you want to leave the "${name}" community?`)) return;
@@ -118,6 +119,10 @@ const Communities = () => {
 
     const filteredCommunities = communities.filter(c => {
         if (!c.id) return false;
+
+        // Apply URL College Filter first
+        if (collegeParam && c.college !== collegeParam) return false;
+
         if (filter === 'joined') {
             const isJoined = userData?.communities?.includes(c.id);
             const isAdminMember = c.admins?.includes(user?.uid) || c.adminId === user?.uid;
@@ -128,6 +133,10 @@ const Communities = () => {
         }
         return true;
     });
+
+    const clearCollegeFilter = () => {
+        setSearchParams({});
+    };
 
     return (
         <div className="communities-page">
@@ -146,6 +155,18 @@ const Communities = () => {
             </header>
 
             <main className="communities-container">
+                {collegeParam && (
+                    <div className="active-filter-banner">
+                        <div className="filter-info">
+                            <School size={20} />
+                            <span>Showing communities for: <strong>{collegeParam}</strong></span>
+                        </div>
+                        <button className="clear-filter-btn" onClick={clearCollegeFilter}>
+                            <X size={16} /> Clear Filter
+                        </button>
+                    </div>
+                )}
+
                 <div className="communities-nav">
                     <button 
                         className={`nav-btn ${filter === 'all' ? 'active' : ''}`} 
