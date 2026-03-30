@@ -24,11 +24,30 @@ export const CallProvider = ({ children }) => {
     const [callId, setCallId] = useState(null);
     
     const pc = useRef(new RTCPeerConnection(servers));
+    const callUnsub = useRef(null);
+    const candidateUnsub = useRef(null);
+
+    const cleanupCall = () => {
+        if (callUnsub.current) callUnsub.current();
+        if (candidateUnsub.current) candidateUnsub.current();
+        
+        if (localStream) {
+            localStream.getTracks().forEach(track => track.stop());
+            setLocalStream(null);
+        }
+        setRemoteStream(null);
+        setActiveCall(null);
+        setOutgoingCall(null);
+        setIncomingCall(null);
+        setCallId(null);
+        
+        pc.current.close();
+        pc.current = new RTCPeerConnection(servers);
+    };
 
     useEffect(() => {
         if (!user) return;
 
-        // Listen for incoming calls
         const q = query(
             collection(db, 'calls'),
             where('receiverId', '==', user.uid),
@@ -38,67 +57,52 @@ export const CallProvider = ({ children }) => {
         const unsubscribe = onSnapshot(q, (snapshot) => {
             snapshot.docChanges().forEach((change) => {
                 if (change.type === 'added') {
-                    const callData = change.doc.data();
-                    const id = change.doc.id;
-                    setIncomingCall({ ...callData, id });
+                    setIncomingCall({ ...change.doc.data(), id: change.doc.id });
                 }
             });
         });
 
-        return () => unsubscribe();
+        return () => {
+            unsubscribe();
+            cleanupCall();
+        };
     }, [user]);
 
     const initiateCall = async (receiverId, receiverName, type = 'video', fixedId = null) => {
         if (!user) return;
 
-        // For Community/Event calls, check if someone already started it
         if (fixedId) {
-            const existingCallRef = doc(db, 'calls', fixedId);
-            const existingCallSnap = await getDoc(existingCallRef);
-            if (existingCallSnap.exists()) {
-                const data = existingCallSnap.data();
-                if (data.status === 'ringing' || data.status === 'accepted') {
-                    return joinCallById(fixedId);
-                }
+            const snap = await getDoc(doc(db, 'calls', fixedId));
+            if (snap.exists() && (snap.data().status === 'ringing' || snap.data().status === 'accepted')) {
+                return joinCallById(fixedId);
             }
         }
 
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: type === 'video',
-            audio: true,
-        });
+        const stream = await navigator.mediaDevices.getUserMedia({ video: type === 'video', audio: true });
         setLocalStream(stream);
         
         const remoteStr = new MediaStream();
         setRemoteStream(remoteStr);
 
-        stream.getTracks().forEach((track) => {
-            pc.current.addTrack(track, stream);
-        });
+        stream.getTracks().forEach((track) => pc.current.addTrack(track, stream));
 
         pc.current.ontrack = (event) => {
-            event.streams[0].getTracks().forEach((track) => {
-                remoteStr.addTrack(track);
-            });
+            if (event.streams && event.streams[0]) {
+                event.streams[0].getTracks().forEach((t) => remoteStr.addTrack(t));
+            }
         };
 
         const callDoc = fixedId ? doc(db, 'calls', fixedId) : doc(collection(db, 'calls'));
-        const offerCandidates = collection(callDoc, 'offerCandidates');
-        const answerCandidates = collection(callDoc, 'answerCandidates');
-
         setCallId(callDoc.id);
 
         pc.current.onicecandidate = (event) => {
-            event.candidate && addDoc(offerCandidates, event.candidate.toJSON());
+            if (event.candidate) {
+                addDoc(collection(callDoc, 'offerCandidates'), event.candidate.toJSON());
+            }
         };
 
         const offerDescription = await pc.current.createOffer();
         await pc.current.setLocalDescription(offerDescription);
-
-        const offer = {
-            sdp: offerDescription.sdp,
-            type: offerDescription.type,
-        };
 
         const callData = {
             callerId: user.uid,
@@ -108,21 +112,19 @@ export const CallProvider = ({ children }) => {
             receiverName,
             status: 'ringing',
             type,
-            offer,
+            offer: { sdp: offerDescription.sdp, type: offerDescription.type },
             createdAt: serverTimestamp()
         };
 
         await setDoc(callDoc, callData);
         setOutgoingCall({ ...callData, id: callDoc.id });
 
-        // Listen for remote answer
-        onSnapshot(callDoc, (snapshot) => {
+        if (callUnsub.current) callUnsub.current();
+        callUnsub.current = onSnapshot(callDoc, (snapshot) => {
             const data = snapshot.data();
             if (!pc.current.currentRemoteDescription && data?.answer) {
-                const answerDescription = new RTCSessionDescription(data.answer);
-                pc.current.setRemoteDescription(answerDescription);
+                pc.current.setRemoteDescription(new RTCSessionDescription(data.answer));
             }
-            
             if (data?.status === 'accepted') {
                 setActiveCall({ ...data, id: snapshot.id });
                 setOutgoingCall(null);
@@ -131,87 +133,67 @@ export const CallProvider = ({ children }) => {
             }
         });
 
-        // Listen for remote ICE candidates
-        onSnapshot(answerCandidates, (snapshot) => {
+        if (candidateUnsub.current) candidateUnsub.current();
+        candidateUnsub.current = onSnapshot(collection(callDoc, 'answerCandidates'), (snapshot) => {
             snapshot.docChanges().forEach((change) => {
-                const data = change.doc.data();
-                pc.current.addIceCandidate(new RTCIceCandidate(data)).catch(e => console.error(e));
+                if (change.type === 'added') {
+                    pc.current.addIceCandidate(new RTCIceCandidate(change.doc.data())).catch(() => {});
+                }
             });
         });
     };
 
-
     const joinCallById = async (id) => {
-        const callDoc = doc(db, 'calls', id);
-        const callSnap = await getDoc(callDoc);
-        
-        if (!callSnap.exists()) {
-            alert("Call not found");
-            return;
-        }
-
-        const callData = callSnap.data();
-        setIncomingCall({ ...callData, id });
-        // After setting incomingCall, the user can click 'Accept' or we can auto-accept
-        // For 'Join Live' features, auto-accept is better:
-        await acceptCallWithData({ ...callData, id });
+        const snap = await getDoc(doc(db, 'calls', id));
+        if (!snap.exists()) return alert("Call not found");
+        const data = snap.data();
+        setIncomingCall({ ...data, id });
+        await acceptCallWithData({ ...data, id });
     };
 
     const acceptCallWithData = async (call) => {
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: call.type === 'video',
-            audio: true,
-        });
+        const stream = await navigator.mediaDevices.getUserMedia({ video: call.type === 'video', audio: true });
         setLocalStream(stream);
 
         const remoteStr = new MediaStream();
         setRemoteStream(remoteStr);
 
-        stream.getTracks().forEach((track) => {
-            pc.current.addTrack(track, stream);
-        });
+        stream.getTracks().forEach((track) => pc.current.addTrack(track, stream));
 
         pc.current.ontrack = (event) => {
-            event.streams[0].getTracks().forEach((track) => {
-                remoteStr.addTrack(track);
-            });
+            if (event.streams && event.streams[0]) {
+                event.streams[0].getTracks().forEach((t) => remoteStr.addTrack(t));
+            }
         };
 
         const callDoc = doc(db, 'calls', call.id);
-        const answerCandidates = collection(callDoc, 'answerCandidates');
-        const offerCandidates = collection(callDoc, 'offerCandidates');
-
         pc.current.onicecandidate = (event) => {
-            event.candidate && addDoc(answerCandidates, event.candidate.toJSON());
+            if (event.candidate) {
+                addDoc(collection(callDoc, 'answerCandidates'), event.candidate.toJSON());
+            }
         };
 
-        const offerDescription = call.offer;
-        await pc.current.setRemoteDescription(new RTCSessionDescription(offerDescription));
-
+        await pc.current.setRemoteDescription(new RTCSessionDescription(call.offer));
         const answerDescription = await pc.current.createAnswer();
         await pc.current.setLocalDescription(answerDescription);
 
-        const answer = {
-            type: answerDescription.type,
-            sdp: answerDescription.sdp,
-        };
+        await updateDoc(callDoc, { 
+            answer: { type: answerDescription.type, sdp: answerDescription.sdp }, 
+            status: 'accepted' 
+        });
 
-        await updateDoc(callDoc, { answer, status: 'accepted' });
-
-        onSnapshot(offerCandidates, (snapshot) => {
+        if (candidateUnsub.current) candidateUnsub.current();
+        candidateUnsub.current = onSnapshot(collection(callDoc, 'offerCandidates'), (snapshot) => {
             snapshot.docChanges().forEach((change) => {
                 if (change.type === 'added') {
-                    let data = change.doc.data();
-                    pc.current.addIceCandidate(new RTCIceCandidate(data));
+                    pc.current.addIceCandidate(new RTCIceCandidate(change.doc.data())).catch(() => {});
                 }
             });
         });
 
-        onSnapshot(callDoc, (snapshot) => {
-            const data = snapshot.data();
-            if (data?.status === 'ended') {
-                cleanupCall();
-            }
+        if (callUnsub.current) callUnsub.current();
+        callUnsub.current = onSnapshot(callDoc, (snapshot) => {
+            if (snapshot.data()?.status === 'ended') cleanupCall();
         });
 
         setActiveCall(call);
@@ -220,56 +202,25 @@ export const CallProvider = ({ children }) => {
     };
 
     const acceptCall = async () => {
-        if (!incomingCall) return;
-        await acceptCallWithData(incomingCall);
+        if (incomingCall) await acceptCallWithData(incomingCall);
     };
 
-
     const rejectCall = async () => {
-        if (!incomingCall) return;
-        const callRef = doc(db, 'calls', incomingCall.id);
-        await updateDoc(callRef, { status: 'rejected' });
-        setIncomingCall(null);
+        if (incomingCall) {
+            await updateDoc(doc(db, 'calls', incomingCall.id), { status: 'rejected' });
+            setIncomingCall(null);
+        }
     };
 
     const endCall = async () => {
-        if (callId || (activeCall && activeCall.id)) {
-            const id = callId || activeCall.id;
-            const callRef = doc(db, 'calls', id);
-            await updateDoc(callRef, { status: 'ended' });
+        if (callId || activeCall?.id) {
+            await updateDoc(doc(db, 'calls', callId || activeCall.id), { status: 'ended' });
         }
         cleanupCall();
     };
 
-    const cleanupCall = () => {
-        if (localStream) {
-            localStream.getTracks().forEach(track => track.stop());
-        }
-        setLocalStream(null);
-        setRemoteStream(null);
-        setActiveCall(null);
-        setOutgoingCall(null);
-        setIncomingCall(null);
-        setCallId(null);
-        // Reset peer connection for next call
-        pc.current.close();
-        pc.current = new RTCPeerConnection(servers);
-    };
-
     return (
-        <CallContext.Provider value={{ 
-            initiateCall, 
-            incomingCall, 
-            outgoingCall, 
-            activeCall, 
-            acceptCall, 
-            rejectCall, 
-            endCall,
-            joinCallById,
-            localStream,
-            remoteStream
-        }}>
-
+        <CallContext.Provider value={{ initiateCall, incomingCall, outgoingCall, activeCall, acceptCall, rejectCall, endCall, joinCallById, localStream, remoteStream }}>
             {children}
         </CallContext.Provider>
     );
