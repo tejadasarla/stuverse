@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useCall } from '../../context/CallContext';
 import { db } from '../../firebase.config';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, arrayUnion, arrayRemove, where, deleteDoc, increment, getDocs, writeBatch } from 'firebase/firestore';
-import { Send, ArrowLeft, Hash, Users, Image as ImageIcon, Smile, Bell, MoreVertical, Plus, Trash2, UserMinus, LogOut, Info, X, Video, School } from 'lucide-react';
+import { Send, ArrowLeft, Hash, Users, Image as ImageIcon, Smile, Bell, MoreVertical, Plus, Trash2, UserMinus, LogOut, Info, X, Video, School, Lock } from 'lucide-react';
 import EmojiPicker from 'emoji-picker-react';
 import './CommunityChat.css';
 
@@ -170,6 +170,7 @@ const CommunityChat = () => {
             return;
         }
 
+        let unsubscribe = null;
         const syncSidebar = async () => {
             // Include both user-joined and currently viewed community
             const ids = [...(userData?.communities || [])];
@@ -177,7 +178,7 @@ const CommunityChat = () => {
 
             if (ids.length > 0) {
                 const q = query(collection(db, 'communities'), where('__name__', 'in', ids.slice(0, 30)));
-                return onSnapshot(q, (snapshot) => {
+                unsubscribe = onSnapshot(q, (snapshot) => {
                     const comms = snapshot.docs.map(doc => ({
                         id: doc.id,
                         ...doc.data(),
@@ -190,8 +191,8 @@ const CommunityChat = () => {
             }
         };
 
-        const unsub = syncSidebar();
-        return () => { if (typeof unsub === 'function') unsub(); };
+        syncSidebar();
+        return () => { if (unsubscribe) unsubscribe(); };
     }, [user, userData?.communities, id, navigate]);
     useEffect(() => {
         const handleClickOutside = (event) => {
