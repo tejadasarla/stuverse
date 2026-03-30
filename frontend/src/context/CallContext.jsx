@@ -48,8 +48,20 @@ export const CallProvider = ({ children }) => {
         return () => unsubscribe();
     }, [user]);
 
-    const initiateCall = async (receiverId, receiverName, type = 'video') => {
+    const initiateCall = async (receiverId, receiverName, type = 'video', fixedId = null) => {
         if (!user) return;
+
+        // For Community/Event calls, check if someone already started it
+        if (fixedId) {
+            const existingCallRef = doc(db, 'calls', fixedId);
+            const existingCallSnap = await getDoc(existingCallRef);
+            if (existingCallSnap.exists()) {
+                const data = existingCallSnap.data();
+                if (data.status === 'ringing' || data.status === 'accepted') {
+                    return joinCallById(fixedId);
+                }
+            }
+        }
 
         const stream = await navigator.mediaDevices.getUserMedia({
             video: type === 'video',
@@ -70,7 +82,7 @@ export const CallProvider = ({ children }) => {
             });
         };
 
-        const callDoc = doc(collection(db, 'calls'));
+        const callDoc = fixedId ? doc(db, 'calls', fixedId) : doc(collection(db, 'calls'));
         const offerCandidates = collection(callDoc, 'offerCandidates');
         const answerCandidates = collection(callDoc, 'answerCandidates');
 
@@ -122,14 +134,12 @@ export const CallProvider = ({ children }) => {
         // Listen for remote ICE candidates
         onSnapshot(answerCandidates, (snapshot) => {
             snapshot.docChanges().forEach((change) => {
-                if (change.type === 'added') {
-                    const data = change.doc.data();
-                    const candidate = new RTCIceCandidate(data);
-                    pc.current.addIceCandidate(candidate);
-                }
+                const data = change.doc.data();
+                pc.current.addIceCandidate(new RTCIceCandidate(data)).catch(e => console.error(e));
             });
         });
     };
+
 
     const joinCallById = async (id) => {
         const callDoc = doc(db, 'calls', id);

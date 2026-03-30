@@ -542,10 +542,8 @@ const CommunityChat = () => {
     };
 
     const handleStartGroupCall = () => {
-        // For simplicity in 1-to-1 mode, we'll use a fixed call ID for the community
-        // In a real group call, we'd use a different architecture
-        alert("Starting community call... Others can join using the same button.");
-        initiateCall(id, currentCommunity.name, 'video');
+        // Use community ID as fixedId so others join the same session
+        initiateCall(id, currentCommunity.name, 'video', id);
     };
 
     const onEmojiClick = (emojiData) => {

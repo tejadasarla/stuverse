@@ -111,8 +111,8 @@ const Events = () => {
     };
 
     const handleJoinLive = (event) => {
-        alert("Joining live session... Others can join using the same button.");
-        initiateCall(event.id, event.title, 'video');
+        // Use event ID as fixedId so others join the same session
+        initiateCall(event.id, event.title, 'video', event.id);
     };
 
     const formatDateTime = (dateTime) => {
