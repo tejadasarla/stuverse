@@ -85,8 +85,7 @@ const Messages = () => {
                     <div className="msg-empty-state">
                         <MessageCircle size={48} />
                         <h3>No messages yet</h3>
-                        <p>Start a conversation from a student's profile.</p>
-                        <button onClick={() => navigate('/search')}>Find people</button>
+                        <p>Start a conversation from a student's profile to see your chats here.</p>
                     </div>
                 ) : (
                     <div className="chats-list">

@@ -19,6 +19,20 @@ const CommunitySettings = () => {
     const [description, setDescription] = useState('');
     const [banner, setBanner] = useState('');
     const [category, setCategory] = useState('');
+    const [college, setCollege] = useState('');
+
+    const colleges = [
+        'CVR College of Engineering',
+        'Malla Reddy Engineering College',
+        'CBIT (Chaitanya Bharathi Institute of Technology)',
+        'VNR VJIET',
+        'BVRIT (B V Raju Institute of Technology)',
+        'Gokaraju Rangaraju Institute of Engineering and Technology',
+        'Guru Nanak Institutions Technical Campus',
+        "St. Peter's Engineering College",
+        'MGIT (Mahatma Gandhi Institute of Technology)',
+        'Institute of Aeronautical Engineering'
+    ];
 
     useEffect(() => {
         const fetchData = async () => {
@@ -31,6 +45,7 @@ const CommunitySettings = () => {
                     setDescription(data.description);
                     setBanner(data.banner);
                     setCategory(data.category);
+                    setCollege(data.college || '');
                 } else {
                     navigate('/communities');
                 }
@@ -58,7 +73,8 @@ const CommunitySettings = () => {
                 name,
                 description,
                 banner,
-                category
+                category,
+                college
             });
             alert("Community settings updated successfully!");
         } catch (err) {
@@ -142,6 +158,15 @@ const CommunitySettings = () => {
                                         disabled={!isAdmin}
                                     />
                                 </div>
+                            </div>
+                            <div className="form-group">
+                                <label>College Name</label>
+                                <select value={college} onChange={e => setCollege(e.target.value)} disabled={!isAdmin}>
+                                    <option value="">Open Community (Global)</option>
+                                    {colleges.map(c => (
+                                        <option key={c} value={c}>{c}</option>
+                                    ))}
+                                </select>
                             </div>
                             {isAdmin && (
                                 <button type="submit" className="save-settings-btn" disabled={saving}>

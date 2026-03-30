@@ -159,8 +159,7 @@ const DirectChat = () => {
             });
             
             await batch.commit();
-
-            // Update last message
+            
             const chatRef = doc(db, 'direct_chats', chatId);
             await setDoc(chatRef, {
                 lastMessage: '',
@@ -169,6 +168,7 @@ const DirectChat = () => {
             }, { merge: true });
 
             alert("Chat cleared successfully");
+            navigate('/messages'); 
         } catch (err) {
             console.error("Clear chat error:", err);
             alert("Failed to clear chat");

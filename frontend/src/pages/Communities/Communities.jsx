@@ -227,6 +227,11 @@ const Communities = () => {
                                         <span className="comm-admin">
                                             <Shield size={14} /> Created by <AdminName adminId={community.adminId} initialName={community.adminName} currentUserId={user?.uid} />
                                         </span>
+                                        {community.college && (
+                                            <span className="comm-college-meta">
+                                                <School size={14} /> {community.college}
+                                            </span>
+                                        )}
                                     </div>
 
                                     <div className="comm-actions">

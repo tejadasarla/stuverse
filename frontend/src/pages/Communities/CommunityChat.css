@@ -125,6 +125,13 @@
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
+.groups-header-text {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex: 1;
+}
+
 .groups-header h3 {
     font-size: 0.95rem;
     font-weight: 700;
@@ -132,6 +139,24 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    margin: 0;
+}
+
+.community-college-tag {
+    font-size: 0.65rem;
+    color: var(--primary);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.community-college-tag svg {
+    flex-shrink: 0;
 }
 
 .add-group-btn {

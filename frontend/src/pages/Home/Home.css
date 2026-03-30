@@ -359,9 +359,28 @@
     border-radius: 50%;
 }
 
+.card-title-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
 .card-content h3 {
     font-size: 1.1rem;
     color: var(--secondary);
+    margin: 0;
+}
+
+.card-college-link {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 2px;
+}
+
+.card-college-link svg {
+    color: var(--primary);
 }
 
 .card-content p {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { User, ArrowRight, Star } from 'lucide-react';
+import { User, ArrowRight, Star, School } from 'lucide-react';
 import { db } from '../../firebase.config';
 import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import './Home.css';
@@ -160,7 +160,15 @@ const Home = () => {
                                             alt={comm.name} 
                                             className="community-icon" 
                                         />
-                                        <h3>{comm.name}</h3>
+                                        <div className="card-title-wrapper">
+                                            <h3>{comm.name}</h3>
+                                            {comm.college && (
+                                                <div className="card-college-link">
+                                                    <School size={12} />
+                                                    <span>{comm.college}</span>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                     <p>{comm.description?.substring(0, 100)}{comm.description?.length > 100 ? '...' : ''}</p>
                                     <div className="card-footer">

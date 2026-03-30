@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useCall } from '../../context/CallContext';
 import { db } from '../../firebase.config';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, arrayUnion, arrayRemove, where, deleteDoc, increment, getDocs, writeBatch } from 'firebase/firestore';
-import { Send, ArrowLeft, Hash, Users, Image as ImageIcon, Smile, Bell, MoreVertical, Plus, Trash2, UserMinus, LogOut, Info, X, Video } from 'lucide-react';
+import { Send, ArrowLeft, Hash, Users, Image as ImageIcon, Smile, Bell, MoreVertical, Plus, Trash2, UserMinus, LogOut, Info, X, Video, School } from 'lucide-react';
 import EmojiPicker from 'emoji-picker-react';
 import './CommunityChat.css';
 
@@ -612,7 +612,14 @@ const CommunityChat = () => {
                     style={{ cursor: 'pointer' }}
                     title="Community Settings"
                 >
-                    <h3>{currentCommunity.name}</h3>
+                    <div className="groups-header-text">
+                        <h3>{currentCommunity.name}</h3>
+                        {currentCommunity.college && (
+                            <span className="community-college-tag">
+                                <School size={10} /> {currentCommunity.college}
+                            </span>
+                        )}
+                    </div>
                     {(currentCommunity.adminId === user?.uid || currentCommunity.admins?.includes(user?.uid)) && (
                         <button 
                             className="add-group-btn" 
