@@ -529,6 +529,10 @@
     margin-top: 16px;
 }
 
+.message-row.consecutive {
+    margin-top: -2px;
+}
+
 .msg-avatar {
     width: 40px;
     height: 40px;
@@ -554,6 +558,22 @@
 .msg-avatar-spacer {
     width: 40px;
     flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    padding-top: 12px;
+}
+
+.msg-hover-time {
+    opacity: 0;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    transition: opacity 0.2s;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.message-row:hover .msg-hover-time {
+    opacity: 0.5;
 }
 
 .msg-content-wrapper {
