@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useCall } from '../../context/CallContext';
 import { db } from '../../firebase.config';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, arrayUnion, arrayRemove, where, deleteDoc, increment, getDocs, writeBatch } from 'firebase/firestore';
-import { Send, ArrowLeft, Hash, Users, Image as ImageIcon, Smile, Bell, MoreVertical, Plus, Trash2, UserMinus, LogOut, Info, X } from 'lucide-react';
+import { Send, ArrowLeft, Hash, Users, Image as ImageIcon, Smile, Bell, MoreVertical, Plus, Trash2, UserMinus, LogOut, Info, X, Video } from 'lucide-react';
 import EmojiPicker from 'emoji-picker-react';
 import './CommunityChat.css';
 
@@ -14,6 +15,7 @@ const CommunityChat = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { user, userData, refreshUserData } = useAuth();
+    const { initiateCall, joinCallById } = useCall();
 
     const [groups, setGroups] = useState([]);
     const [activeGroupId, setActiveGroupId] = useState(null);
@@ -539,6 +541,13 @@ const CommunityChat = () => {
         }
     };
 
+    const handleStartGroupCall = () => {
+        // For simplicity in 1-to-1 mode, we'll use a fixed call ID for the community
+        // In a real group call, we'd use a different architecture
+        alert("Starting community call... Others can join using the same button.");
+        initiateCall(id, currentCommunity.name, 'video');
+    };
+
     const onEmojiClick = (emojiData) => {
         setNewMessage(prev => prev + emojiData.emoji);
     };
@@ -676,6 +685,15 @@ const CommunityChat = () => {
                                 onClick={() => setActiveTab('chat')}
                             >
                                 Chat
+                            </button>
+
+                            <button 
+                                className="header-tab video-call-tab"
+                                onClick={handleStartGroupCall}
+                                style={{ color: '#2ed573' }}
+                                title="Start Community Video Call"
+                            >
+                                <Video size={16} /> Start Group Call
                             </button>
                             
                             {currentCommunity.adminId === user?.uid && (

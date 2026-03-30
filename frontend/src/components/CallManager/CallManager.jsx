@@ -1,8 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { useCall } from '../../context/CallContext';
 import { useAuth } from '../../context/AuthContext';
-import { ZegoUIKitPrebuilt } from '@zegocloud/zego-uikit-prebuilt';
-import { Phone, PhoneOff, Video, XCircle, CheckCircle } from 'lucide-react';
+import { Phone, PhoneOff, Video, XCircle, Mic, MicOff, VideoOff } from 'lucide-react';
 import './CallManager.css';
 
 const CallManager = () => {
@@ -13,48 +12,25 @@ const CallManager = () => {
         acceptCall, 
         rejectCall, 
         endCall,
-        APP_ID, 
-        SERVER_SECRET 
+        localStream,
+        remoteStream
     } = useCall();
     const { user, userData } = useAuth();
-    const callContainerRef = useRef(null);
+    
+    const localVideoRef = useRef(null);
+    const remoteVideoRef = useRef(null);
 
     useEffect(() => {
-        if (!activeCall || !callContainerRef.current) return;
+        if (localVideoRef.current && localStream) {
+            localVideoRef.current.srcObject = localStream;
+        }
+    }, [localStream]);
 
-        const myMeeting = async (element) => {
-            const userName = userData?.username || 'Student';
-            const roomID = activeCall.callID;
-            
-            // In a production app, the token would be generated on the server
-            // For this project, we'll generate it on the client
-            const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
-                APP_ID, 
-                SERVER_SECRET, 
-                roomID, 
-                user.uid, 
-                userName
-            );
-
-            const zp = ZegoUIKitPrebuilt.create(kitToken);
-            zp.joinRoom({
-                container: element,
-                scenario: {
-                    mode: activeCall.type === 'video' ? ZegoUIKitPrebuilt.ScenarioVideoCall : ZegoUIKitPrebuilt.ScenarioAudioCall,
-                },
-                showPreJoinView: false,
-                onLeaveRoom: () => {
-                    endCall();
-                },
-                sharedLinks: [{
-                    name: 'Copy link',
-                    url: window.location.origin
-                }]
-            });
-        };
-
-        myMeeting(callContainerRef.current);
-    }, [activeCall, user, userData, APP_ID, SERVER_SECRET, endCall]);
+    useEffect(() => {
+        if (remoteVideoRef.current && remoteStream) {
+            remoteVideoRef.current.srcObject = remoteStream;
+        }
+    }, [remoteStream]);
 
     if (incomingCall) {
         return (
@@ -62,7 +38,7 @@ const CallManager = () => {
                 <div className="incoming-call-card">
                     <div className="caller-info">
                         <div className="caller-avatar">
-                            {incomingCall.callerPhoto ? <img src={incomingCall.callerPhoto} /> : <span>{incomingCall.callerName[0]}</span>}
+                            {incomingCall.callerPhoto ? <img src={incomingCall.callerPhoto} alt="caller" /> : <span>{incomingCall.callerName[0]}</span>}
                         </div>
                         <h3>{incomingCall.callerName}</h3>
                         <p>Incoming {incomingCall.type} call...</p>
@@ -86,7 +62,7 @@ const CallManager = () => {
                 <div className="incoming-call-card">
                     <div className="caller-info">
                         <div className="caller-avatar">
-                             {outgoingCall.receiverPhoto ? <img src={outgoingCall.receiverPhoto} /> : <span>{outgoingCall.receiverName[0]}</span>}
+                             {outgoingCall.receiverPhoto ? <img src={outgoingCall.receiverPhoto} alt="receiver" /> : <span>{outgoingCall.receiverName[0]}</span>}
                         </div>
                         <h3>{outgoingCall.receiverName}</h3>
                         <p>Calling...</p>
@@ -104,10 +80,22 @@ const CallManager = () => {
     if (activeCall) {
         return (
             <div className="active-call-overlay">
-                <div ref={callContainerRef} className="call-container" />
-                <button className="minimize-call" onClick={endCall}>
-                    <XCircle size={32} />
-                </button>
+                <div className="video-grid">
+                    <div className="remote-video-container">
+                        <video ref={remoteVideoRef} autoPlay playsInline className="remote-video" />
+                        <div className="participant-label">{activeCall.receiverId === user.uid ? activeCall.callerName : activeCall.receiverName}</div>
+                    </div>
+                    <div className="local-video-container">
+                        <video ref={localVideoRef} autoPlay playsInline muted className="local-video" />
+                        <div className="participant-label">You</div>
+                    </div>
+                </div>
+                
+                <div className="call-controls">
+                    <button className="control-btn end-call" onClick={endCall}>
+                        <PhoneOff size={24} />
+                    </button>
+                </div>
             </div>
         );
     }
@@ -116,3 +104,4 @@ const CallManager = () => {
 };
 
 export default CallManager;
+

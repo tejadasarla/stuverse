@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useCall } from '../../context/CallContext';
 import { db } from '../../firebase.config';
 import { collection, doc, updateDoc, deleteDoc, arrayUnion, onSnapshot, query, orderBy, getDoc } from 'firebase/firestore';
 import CreateEventModal from './CreateEventModal';
-import { PlusCircle, Calendar, MapPin, Globe, Users, Clock, Shield, Search, Filter, Trash2, Edit, X } from 'lucide-react';
+import { PlusCircle, Calendar, MapPin, Globe, Users, Clock, Shield, Search, Filter, Trash2, Edit, X, Video } from 'lucide-react';
 import './Events.css';
 
 const ParticipantsModal = ({ participants, isOpen, onClose }) => {
@@ -53,6 +54,7 @@ const ParticipantsModal = ({ participants, isOpen, onClose }) => {
 
 const Events = () => {
     const { user, userData } = useAuth();
+    const { initiateCall } = useCall();
     const navigate = useNavigate();
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -106,6 +108,11 @@ const Events = () => {
         } catch (err) {
             alert("Error deleting event: " + err.message);
         }
+    };
+
+    const handleJoinLive = (event) => {
+        alert("Joining live session... Others can join using the same button.");
+        initiateCall(event.id, event.title, 'video');
     };
 
     const formatDateTime = (dateTime) => {
@@ -228,9 +235,20 @@ const Events = () => {
 
                                     <div className="event-actions">
                                         {event.participants?.includes(user?.uid) ? (
-                                            <button className="join-btn-event joined" disabled>
-                                                Joined √
-                                            </button>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+                                                <button className="join-btn-event joined" disabled style={{ width: '100%' }}>
+                                                    Joined √
+                                                </button>
+                                                {event.mode === 'online' && (
+                                                    <button 
+                                                        className="join-live-btn"
+                                                        onClick={() => handleJoinLive(event)}
+                                                        style={{ backgroundColor: '#7065f0', color: 'white', border: 'none', borderRadius: '8px', padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: '600', cursor: 'pointer' }}
+                                                    >
+                                                        <Video size={18} /> Join Live Session
+                                                    </button>
+                                                )}
+                                            </div>
                                         ) : (
                                             <button 
                                                 className="join-btn-event"

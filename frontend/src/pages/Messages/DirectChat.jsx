@@ -21,7 +21,6 @@ const DirectChat = () => {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [deletingId, setDeletingId] = useState(null);
     const emojiPickerRef = useRef(null);
-    const optionsRef = useRef(null);
     const { initiateCall } = useCall();
 
     // 1. Resolve Other User info
@@ -86,9 +85,6 @@ const DirectChat = () => {
         const handleClickOutside = (event) => {
             if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
                 setShowEmojiPicker(false);
-            }
-            if (optionsRef.current && !optionsRef.current.contains(event.target)) {
-                setShowOptions(false);
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
@@ -208,7 +204,7 @@ const DirectChat = () => {
                     </div>
                     <h3>{otherUser?.username || 'Student'}</h3>
                 </div>
-                <div className="dc-header-actions" ref={optionsRef}>
+                <div className="dc-header-actions">
                     <button className="dc-call" title="Audio Call" onClick={() => handleStartCall('audio')}>
                         <Phone size={20} />
                     </button>

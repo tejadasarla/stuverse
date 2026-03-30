@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { User, Mail, Phone, Calendar, MapPin, Award, BookOpen, LogOut, Edit3, X, Save, Camera, MessageCircle, Trash2 } from 'lucide-react';
+import { useCall } from '../../context/CallContext';
+import { User, Mail, Phone, Calendar, MapPin, Award, BookOpen, LogOut, Edit3, X, Save, Camera, MessageCircle, Trash2, Video } from 'lucide-react';
 import { auth, db, storage } from '../../firebase.config';
 import { signOut, deleteUser } from 'firebase/auth';
 import { doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
@@ -11,6 +12,7 @@ import './Profile.css';
 const Profile = () => {
     const { userId } = useParams();
     const { user, userData, refreshUserData, openAuthModal, loading: authLoading } = useAuth();
+    const { initiateCall } = useCall();
     const navigate = useNavigate();
     
     const [viewedUser, setViewedUser] = useState(null);
@@ -255,6 +257,14 @@ const Profile = () => {
         navigate(`/messages/${chatId}`);
     };
 
+    const handleCallUser = () => {
+        if (!user) {
+            alert("Please login to call other students!");
+            return;
+        }
+        initiateCall(userId, viewedUser?.username || 'Student', 'video');
+    };
+
 
     const handleUpdateProfile = async (e) => {
         e.preventDefault();
@@ -436,9 +446,12 @@ const Profile = () => {
                         </div>
 
                         {!isOwnProfile && (
-                            <div className="connection-section">
-                                <button className="connect-message-btn" onClick={handleSendMessage}>
-                                    <MessageCircle size={20} /> Send Message & Connect
+                            <div className="connection-section" style={{ display: 'flex', gap: '15px' }}>
+                                <button className="connect-message-btn" onClick={handleSendMessage} style={{ flex: 1 }}>
+                                    <MessageCircle size={20} /> Message
+                                </button>
+                                <button className="connect-call-btn" onClick={handleCallUser} style={{ flex: 1, backgroundColor: '#2ed573', color: 'white', border: 'none', borderRadius: '12px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: '600', cursor: 'pointer' }}>
+                                    <Video size={20} /> Call
                                 </button>
                             </div>
                         )}
