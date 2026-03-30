@@ -180,7 +180,7 @@
 
 .comm-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
     gap: 32px;
     animation: fadeInUp 0.6s ease-out;
 }
@@ -194,6 +194,7 @@
     display: flex;
     flex-direction: column;
     border: 1px solid #f1f5f9;
+    height: 100%; /* Ensure all cards in a row have equal height */
 }
 
 .comm-card:hover {
@@ -382,7 +383,7 @@
 
 .no-communities h3 {
     font-size: 1.75rem;
-    color: #0f172a;
+    color: #0045ff;
     margin-bottom: 12px;
     font-weight: 800;
 }
@@ -429,19 +430,32 @@
 }
 
 /* Responsive */
-@media (max-width: 1024px) {
-    .comm-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+@media (max-width: 1200px) {
+    .comm-grid { 
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 24px; 
+    }
+}
+
+@media (max-width: 900px) {
+    .comm-grid { 
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+    }
 }
 
 @media (max-width: 768px) {
-    .communities-hero { padding: 120px 20px 80px; }
-    .communities-nav { width: 100%; border-radius: 16px; gap: 8px; }
+    .communities-hero { padding: 100px 20px 60px; }
+    .communities-nav { width: 100%; border-radius: 16px; gap: 8px; margin-top: 0; }
     .nav-btn { flex: 1; padding: 10px 12px; font-size: 0.85rem; justify-content: center; }
+    .comm-grid { gap: 20px; }
+    .comm-card { border-radius: 20px; }
+    .comm-info { padding: 20px; }
 }
 
 @media (max-width: 480px) {
     .comm-grid { grid-template-columns: 1fr; }
     .comm-banner { height: 180px; }
-    .communities-container { padding: 0 16px; }
+    .communities-container { padding: 0 16px; margin-top: -30px; }
     .active-filter-banner { flex-direction: column; gap: 12px; align-items: stretch; }
+    .comm-header h3 { font-size: 1.25rem; }
 }
