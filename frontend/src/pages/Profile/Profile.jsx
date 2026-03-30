@@ -217,31 +217,32 @@ const Profile = () => {
 
         setUpdating(true);
         try {
-            // 1. Delete user document from Firestore
-            await deleteDoc(doc(db, 'users', user.uid));
+            // 1. Get the current user's ID token for authentication
+            const idToken = await user.getIdToken();
             
-            // 2. Delete profile image from storage if exists
-            try {
-                const storageRef = ref(storage, `profiles/${user.uid}`);
-                await deleteObject(storageRef);
-            } catch (err) {
-                console.log("No profile image found to delete", err);
+            // 2. Call the backend API to delete the account
+            // This is much more reliable and handles Firestore, Storage, and Auth in one go
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+            const response = await fetch(`${apiUrl}/api/auth/delete-account`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${idToken}`
+                }
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || 'Failed to delete account from server');
             }
 
-            // 3. Delete the Auth account
-            // Note: deleteUser() requires a recently signed-in user. 
-            // If it fails with 'requires-recent-login', we might need to ask them to logout/login.
-            await deleteUser(user);
-            
             alert("Account deleted successfully. We're sad to see you go!");
-            navigate('/login');
+            
+            // 3. Clear local storage/state and navigate back to login
+            await signOut(auth);
+            navigate('/');
         } catch (error) {
             console.error('Delete account error:', error);
-            if (error.code === 'auth/requires-recent-login') {
-                alert("For security, you must log out and log back in before deleting your account.");
-            } else {
-                alert(`Error deleting account: ${error.message}`);
-            }
+            alert(`Error deleting account: ${error.message}`);
         } finally {
             setUpdating(false);
         }

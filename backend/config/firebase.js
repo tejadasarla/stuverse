@@ -19,7 +19,8 @@ const serviceAccount = {
 
 try {
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
+    credential: admin.credential.cert(serviceAccount),
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET
   });
   console.log('Firebase Admin initialized successfully');
 } catch (error) {

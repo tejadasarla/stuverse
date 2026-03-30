@@ -49,3 +49,38 @@ exports.login = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+exports.deleteAccount = async (req, res) => {
+    const uid = req.user.uid;
+    console.log(`Starting deletion process for user: ${uid}`);
+
+    try {
+        // 1. Delete user document from Firestore (Wait for it)
+        await db.collection('users').doc(uid).delete();
+        console.log(`Firestore document for ${uid} deleted`);
+
+        // 2. Attempt to delete storage profile image (if exists)
+        try {
+            // Note: We need a bucket reference. Usually the default bucket is fine.
+            const bucket = admin.storage().bucket();
+            const file = bucket.file(`profiles/${uid}`);
+            const [exists] = await file.exists();
+            if (exists) {
+                await file.delete();
+                console.log(`Storage image for ${uid} deleted`);
+            }
+        } catch (storageErr) {
+            console.log(`No profile image found or storage error:`, storageErr.message);
+            // We continue anyway even if storage deletion fails
+        }
+
+        // 3. Delete from Firebase Auth (The critical part)
+        await admin.auth().deleteUser(uid);
+        console.log(`Firebase Auth account for ${uid} deleted`);
+
+        res.status(200).json({ message: 'Account and all associated data deleted successfully.' });
+    } catch (error) {
+        console.error('Delete account backend error:', error);
+        res.status(500).json({ error: `Internal server error: ${error.message}` });
+    }
+};
