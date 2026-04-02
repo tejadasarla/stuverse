@@ -88,7 +88,9 @@ export const CallProvider = ({ children }) => {
 
         pc.current.ontrack = (event) => {
             if (event.streams && event.streams[0]) {
-                event.streams[0].getTracks().forEach((t) => remoteStr.addTrack(t));
+                setRemoteStream(event.streams[0]);
+            } else {
+                setRemoteStream(new MediaStream([event.track]));
             }
         };
 
@@ -162,7 +164,9 @@ export const CallProvider = ({ children }) => {
 
         pc.current.ontrack = (event) => {
             if (event.streams && event.streams[0]) {
-                event.streams[0].getTracks().forEach((t) => remoteStr.addTrack(t));
+                setRemoteStream(event.streams[0]);
+            } else {
+                setRemoteStream(new MediaStream([event.track]));
             }
         };
 
