@@ -6,7 +6,8 @@ import { User, Mail, Phone, Calendar, MapPin, Award, BookOpen, LogOut, Edit3, X,
 import { auth, db, storage } from '../../firebase.config';
 import { signOut, deleteUser } from 'firebase/auth';
 import { doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { ref, deleteObject } from 'firebase/storage';
+import { uploadImageToStorage } from '../../utils/imageUtils';
 import './Profile.css';
 
 const Profile = () => {
@@ -154,43 +155,6 @@ const Profile = () => {
         setRemovePhoto(false);
     };
 
-    const compressImage = (file) => {
-        return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = (event) => {
-                const img = new Image();
-                img.src = event.target.result;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 400;
-                    const MAX_HEIGHT = 400;
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > height) {
-                        if (width > MAX_WIDTH) {
-                            height *= MAX_WIDTH / width;
-                            width = MAX_WIDTH;
-                        }
-                    } else {
-                        if (height > MAX_HEIGHT) {
-                            width *= MAX_HEIGHT / height;
-                            height = MAX_HEIGHT;
-                        }
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-                    canvas.toBlob((blob) => {
-                        resolve(blob);
-                    }, 'image/jpeg', 0.8);
-                };
-            };
-        });
-    };
 
     const handleRemovePhoto = () => {
         setImageFile(null);
@@ -275,21 +239,12 @@ const Profile = () => {
         try {
             let photoURL = userData?.photoURL || '';
 
-            if (imageFile) {
-                const compressedBlob = await compressImage(imageFile);
-                const storageRef = ref(storage, `profiles/${user.uid}`);
-                const snapshot = await uploadBytes(storageRef, compressedBlob);
-                photoURL = await getDownloadURL(snapshot.ref);
+            if (removePhoto) {
+                photoURL = '';
+            } else if (imageFile) {
+                photoURL = await uploadImageToStorage(imageFile, `profiles/${user.uid}`, { maxWidth: 400, maxHeight: 400 });
             } else if (selectedPreset) {
                 photoURL = selectedPreset;
-            } else if (removePhoto) {
-                photoURL = '';
-                try {
-                    const storageRef = ref(storage, `profiles/${user.uid}`);
-                    await deleteObject(storageRef);
-                } catch (err) {
-                    console.log("Photo not found in storage or deleted", err);
-                }
             }
 
             const userRef = doc(db, 'users', user.uid);
@@ -507,6 +462,11 @@ const Profile = () => {
                                     accept="image/*"
                                     onChange={handleImageChange}
                                 />
+                                {(imagePreview || userData?.photoURL) && (
+                                    <button type="button" className="remove-photo-btn" onClick={handleRemovePhoto} style={{ marginTop: '10px', background: 'transparent', border: '1px solid #ff4757', color: '#ff4757', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>
+                                        Remove Photo
+                                    </button>
+                                )}
                             </div>
 
                             <div className="avatar-presets-container">

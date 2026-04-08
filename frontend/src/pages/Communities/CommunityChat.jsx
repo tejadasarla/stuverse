@@ -34,6 +34,8 @@ const CommunityChat = () => {
     const [isCreatingGroup, setIsCreatingGroup] = useState(false);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const emojiPickerRef = useRef(null);
+    const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
+    const headerMenuRef = useRef(null);
 
     const isJoined = userData?.communities?.includes(id) || currentCommunity?.adminId === user?.uid;
 
@@ -163,41 +165,62 @@ const CommunityChat = () => {
         return () => unsub();
     }, [id, currentCommunity?.adminId, currentCommunity?.adminName, currentCommunity?.adminPhoto]);
 
-    // 5. Fetch joined communities sidebar list
+    // 5. Fetch joined communities sidebar list (joined + admin of)
     useEffect(() => {
         if (!user) {
             navigate('/login');
             return;
         }
 
-        let unsubscribe = null;
-        const syncSidebar = async () => {
-            // Include both user-joined and currently viewed community
-            const ids = [...(userData?.communities || [])];
-            if (id && !ids.includes(id)) ids.push(id);
+        let unsubJoined = null;
+        let unsubAdmin = null;
+        const allComms = new Map();
 
-            if (ids.length > 0) {
-                const q = query(collection(db, 'communities'), where('__name__', 'in', ids.slice(0, 30)));
-                unsubscribe = onSnapshot(q, (snapshot) => {
-                    const comms = snapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data(),
-                        icon: doc.data().banner || `https://ui-avatars.com/api/?name=${encodeURIComponent(doc.data().name)}&background=random`
-                    }));
-                    setJoinedCommunities(comms);
-                });
-            } else {
-                setJoinedCommunities([]);
-            }
+        const updateList = () => {
+            const sorted = Array.from(allComms.values()).sort((a, b) =>
+                a.name?.localeCompare(b.name)
+            );
+            setJoinedCommunities(sorted);
         };
 
-        syncSidebar();
-        return () => { if (unsubscribe) unsubscribe(); };
+        const toComm = (docSnap) => ({
+            id: docSnap.id,
+            ...docSnap.data(),
+            icon: docSnap.data().banner ||
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(docSnap.data().name)}&background=random`
+        });
+
+        // Query 1: Communities the user is a member of
+        const memberIds = [...(userData?.communities || [])];
+        if (id && !memberIds.includes(id)) memberIds.push(id);
+
+        if (memberIds.length > 0) {
+            const q1 = query(collection(db, 'communities'), where('__name__', 'in', memberIds.slice(0, 30)));
+            unsubJoined = onSnapshot(q1, (snapshot) => {
+                snapshot.docs.forEach(d => allComms.set(d.id, toComm(d)));
+                updateList();
+            });
+        }
+
+        // Query 2: Communities where user is the admin (created by user)
+        const q2 = query(collection(db, 'communities'), where('adminId', '==', user.uid));
+        unsubAdmin = onSnapshot(q2, (snapshot) => {
+            snapshot.docs.forEach(d => allComms.set(d.id, toComm(d)));
+            updateList();
+        });
+
+        return () => {
+            if (unsubJoined) unsubJoined();
+            if (unsubAdmin) unsubAdmin();
+        };
     }, [user, userData?.communities, id, navigate]);
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
                 setShowEmojiPicker(false);
+            }
+            if (headerMenuRef.current && !headerMenuRef.current.contains(event.target)) {
+                setHeaderMenuOpen(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
@@ -644,7 +667,11 @@ const CommunityChat = () => {
                                     className="group-item"
                                     onClick={() => setActiveGroupId(group.id)}
                                 >
-                                    {group.type === 'announcements' ? <Bell size={18} className="group-icon" /> : <Hash size={18} className="group-icon" />}
+                                    {group.icon ? (
+                                        <img src={group.icon} alt="" style={{width: 24, height: 24, borderRadius: '50%', flexShrink: 0, objectFit: 'cover', marginRight: 10}} />
+                                    ) : (
+                                        group.type === 'announcements' ? <Bell size={18} className="group-icon" /> : <Hash size={18} className="group-icon" />
+                                    )}
                                     <span className="group-name">{group.name}</span>
                                 </button>
                                 {currentCommunity.adminId === user?.uid && (
@@ -675,11 +702,14 @@ const CommunityChat = () => {
                         </button>
                         <div 
                             className="header-text-box" 
-                            style={{ cursor: 'pointer' }}
+                            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}
                             onClick={() => navigate(`/communities/${id}/groups/${activeGroupId}/settings`)}
                             title="Group Settings"
                         >
-                            <h2>{activeGroup?.name || 'Select a group'}</h2>
+                            {activeGroup?.icon && (
+                                <img src={activeGroup.icon} alt="Group Icon" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', marginRight: 10 }} />
+                            )}
+                            <h2 className={activeGroup?.icon ? 'has-icon' : ''}>{activeGroup?.name || 'Select a group'}</h2>
                             {activeGroup?.description && (
                                 <p className="header-subtext">{activeGroup.description}</p>
                             )}
@@ -693,44 +723,54 @@ const CommunityChat = () => {
                                 Chat
                             </button>
 
-                            <button 
-                                className="header-tab video-call-tab"
+                            <button
+                                className="header-menu-btn"
                                 onClick={handleStartGroupCall}
+                                title="Start Group Call"
                                 style={{ color: '#2ed573' }}
-                                title="Start Community Video Call"
                             >
-                                <Video size={16} /> Start Group Call
+                                <Video size={20} />
                             </button>
-                            
-                            {currentCommunity.adminId === user?.uid && (
-                                <button 
-                                    className={`header-tab ${activeTab === 'manage' ? 'active' : ''}`}
-                                    onClick={() => setActiveTab('manage')}
-                                >
-                                    <Users size={16} /> Manage Groups
-                                    {activeGroup?.pendingRequests?.length > 0 && <span className="notif-dot" />}
-                                </button>
-                            )}
-                            
-                            {(currentCommunity.adminId === user?.uid || currentCommunity.admins?.includes(user?.uid)) && (
-                                <button 
-                                    className="header-tab clear-chat-tab"
-                                    onClick={handleClearChat}
-                                    title="Clear all messages in this group"
-                                >
-                                    <Trash2 size={16} /> Clear Chat
-                                </button>
-                            )}
 
-                            {!(currentCommunity.adminId === user?.uid) && activeGroup?.members?.includes(user?.uid) && (
-                                <button 
-                                    className="header-tab exit-group-tab"
-                                    onClick={handleExitGroup}
-                                    title="Exit Group"
-                                >
-                                    <LogOut size={16} /> Exit
+                            <div className="header-menu-container" ref={headerMenuRef}>
+                                <button className="header-menu-btn" onClick={() => setHeaderMenuOpen(!headerMenuOpen)} title="Options">
+                                    <MoreVertical size={20} />
+                                    {activeGroup?.pendingRequests?.length > 0 && currentCommunity.adminId === user?.uid && (
+                                        <span className="notif-dot" style={{ position: 'absolute', top: 0, right: 0 }} />
+                                    )}
                                 </button>
-                            )}
+                                
+                                {headerMenuOpen && (
+                                    <div className="header-dropdown">
+                                        {currentCommunity.adminId === user?.uid && (
+                                            <button 
+                                                onClick={() => { setActiveTab('manage'); setHeaderMenuOpen(false); }}
+                                            >
+                                                <Users size={16} /> Manage Groups
+                                                {activeGroup?.pendingRequests?.length > 0 && <span className="notif-dot" style={{ position: 'static' }} />}
+                                            </button>
+                                        )}
+                                        
+                                        {(currentCommunity.adminId === user?.uid || currentCommunity.admins?.includes(user?.uid)) && (
+                                            <button 
+                                                onClick={() => { handleClearChat(); setHeaderMenuOpen(false); }}
+                                                className="danger-action"
+                                            >
+                                                <Trash2 size={16} /> Clear Chat
+                                            </button>
+                                        )}
+
+                                        {!(currentCommunity.adminId === user?.uid) && activeGroup?.members?.includes(user?.uid) && (
+                                            <button 
+                                                onClick={() => { handleExitGroup(); setHeaderMenuOpen(false); }}
+                                                className="danger-action"
+                                            >
+                                                <LogOut size={16} /> Exit Group
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
 
@@ -762,8 +802,12 @@ const CommunityChat = () => {
                             ) : (
                                 <>
                                     <div className="chat-welcome">
-                                        <div className="welcome-icon">
-                                            <Hash size={40} />
+                                        <div className="welcome-icon" style={activeGroup?.icon ? { background: 'transparent', padding: 0 } : {}}>
+                                            {activeGroup?.icon ? (
+                                                <img src={activeGroup.icon} alt="Group Icon" style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: '4px solid var(--border-color)' }} />
+                                            ) : (
+                                                <Hash size={40} />
+                                            )}
                                         </div>
                                         <h2>Welcome to {activeGroup?.name || currentCommunity.name || 'the community'}!</h2>
                                         <p>{activeGroup?.description || "This is the start of the conversation. Send a message to get things started!"}</p>
@@ -864,7 +908,7 @@ const CommunityChat = () => {
                                                 </div>
                                                 <input
                                                     type="text"
-                                                    placeholder={`Message ${activeGroup?.name || '...'}`}
+                                                    placeholder="Message"
                                                     value={newMessage}
                                                     onChange={(e) => setNewMessage(e.target.value)}
                                                 />

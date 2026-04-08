@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../firebase.config';
 import { useAuth } from '../../context/AuthContext';
-import { ArrowLeft, Save, Shield, MessageSquare, MoreHorizontal, Camera, Lock, Eye, Trash2 } from 'lucide-react';
+import { ArrowLeft, Save, Shield, MessageSquare, MoreHorizontal, Camera, Lock, Eye, Trash2, Image as ImageIcon } from 'lucide-react';
+import { uploadImageToStorage } from '../../utils/imageUtils';
 import './CommunitySettings.css';
 
 const GroupSettings = () => {
@@ -14,10 +15,13 @@ const GroupSettings = () => {
     const [group, setGroup] = useState(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [icon, setIcon] = useState('');
+    const [iconFile, setIconFile] = useState(null);
+    const [removeIcon, setRemoveIcon] = useState(false);
     const [canChat, setCanChat] = useState('everyone');
 
     useEffect(() => {
@@ -49,6 +53,20 @@ const GroupSettings = () => {
 
     const isAdmin = community?.admins?.includes(user?.uid) || community?.adminId === user?.uid;
 
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 2 * 1024 * 1024) {
+                alert("Icon must be less than 2MB");
+                return;
+            }
+            setIconFile(file);
+            const reader = new FileReader();
+            reader.onload = (event) => setIcon(event.target.result); // use icon string for preview
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleUpdate = async (e) => {
         e.preventDefault();
         if (!isAdmin) {
@@ -57,11 +75,18 @@ const GroupSettings = () => {
         }
         setSaving(true);
         try {
+            let finalIconUrl = icon;
+            if (removeIcon) {
+                finalIconUrl = '';
+            } else if (iconFile) {
+                finalIconUrl = await uploadImageToStorage(iconFile, `groups/icons/${id}_${groupId}`, { maxWidth: 400, maxHeight: 400 });
+            }
+
             const groupRef = doc(db, 'communities', id, 'groups', groupId);
             await updateDoc(groupRef, {
                 name,
                 description,
-                icon,
+                icon: finalIconUrl,
                 settings: {
                     ...group?.settings,
                     chatPolicy: canChat
@@ -83,7 +108,7 @@ const GroupSettings = () => {
         
         if (!window.confirm(`CRITICAL: Are you sure you want to delete the group "${group.name}"? All messages will be lost forever.`)) return;
         
-        setSaving(true);
+        setDeleting(true);
         try {
             await deleteDoc(doc(db, 'communities', id, 'groups', groupId));
             alert("Group deleted successfully.");
@@ -91,7 +116,7 @@ const GroupSettings = () => {
         } catch (err) {
             alert(`Error: ${err.message}`);
         } finally {
-            setSaving(false);
+            setDeleting(false);
         }
     };
 
@@ -129,17 +154,36 @@ const GroupSettings = () => {
                                 />
                             </div>
                             <div className="form-group">
-                                <label>Group Icon URL (Optional)</label>
-                                <div className="input-with-icon">
-                                    <Camera size={18} />
-                                    <input 
-                                        type="url" 
-                                        value={icon} 
-                                        onChange={e => setIcon(e.target.value)} 
-                                        disabled={!isAdmin}
-                                        placeholder="Enter image URL"
-                                    />
+                                <label>Group Icon (Optional)</label>
+                                <div className="banner-upload-area" onClick={() => isAdmin && document.getElementById('group-icon-upload').click()} style={{ border: '2px dashed var(--border-color)', borderRadius: '50%', width: '100px', height: '100px', margin: '0 auto', textAlign: 'center', cursor: isAdmin ? 'pointer' : 'default', overflow: 'hidden', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg-secondary)' }}>
+                                    {icon ? (
+                                        <img src={icon} alt="Icon Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    ) : (
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', color: 'var(--text-dim)' }}>
+                                            <ImageIcon size={24} />
+                                        </div>
+                                    )}
+                                    {isAdmin && (
+                                        <input 
+                                            type="file" 
+                                            id="group-icon-upload"
+                                            hidden 
+                                            accept="image/*"
+                                            onChange={handleFileChange}
+                                        />
+                                    )}
                                 </div>
+                                {icon && isAdmin && (
+                                    <div style={{ textAlign: 'center' }}>
+                                        <button type="button" onClick={() => {
+                                            setIcon('');
+                                            setIconFile(null);
+                                            setRemoveIcon(true);
+                                        }} style={{ marginTop: '10px', background: 'transparent', border: '1px solid #ff4757', color: '#ff4757', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>
+                                            Remove Icon
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                             
                             <div className="form-group chat-policy">
@@ -167,8 +211,8 @@ const GroupSettings = () => {
                         <section className="settings-section danger-zone">
                             <h2><Lock size={20} /> Danger Zone</h2>
                             <p>This will permanently remove this group and all its message history. Use with caution.</p>
-                            <button className="delete-comm-btn" onClick={handleDeleteGroup} disabled={saving}>
-                                <Trash2 size={18} /> {saving ? 'Removing...' : 'Delete Group'}
+                            <button className="delete-comm-btn" onClick={handleDeleteGroup} disabled={deleting || saving}>
+                                <Trash2 size={18} /> {deleting ? 'Removing...' : 'Delete Group'}
                             </button>
                         </section>
                     )}

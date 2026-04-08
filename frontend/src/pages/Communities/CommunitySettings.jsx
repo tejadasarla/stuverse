@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { doc, getDoc, updateDoc, arrayUnion, deleteDoc } from 'firebase/firestore';
 import { db } from '../../firebase.config';
 import { useAuth } from '../../context/AuthContext';
-import { ArrowLeft, Shield, Users, MessageSquare, Lock, Globe, Camera, Trash2, Save } from 'lucide-react';
+import { ArrowLeft, Shield, Users, MessageSquare, Lock, Globe, Camera, Trash2, Save, Image as ImageIcon } from 'lucide-react';
+import { uploadImageToStorage } from '../../utils/imageUtils';
 import './CommunitySettings.css';
 
 const CommunitySettings = () => {
@@ -18,6 +19,8 @@ const CommunitySettings = () => {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [banner, setBanner] = useState('');
+    const [bannerFile, setBannerFile] = useState(null);
+    const [removeBanner, setRemoveBanner] = useState(false);
     const [category, setCategory] = useState('');
     const [college, setCollege] = useState('');
 
@@ -61,6 +64,20 @@ const CommunitySettings = () => {
     const isAdmin = community?.admins?.includes(user?.uid) || community?.adminId === user?.uid;
     const isCreator = (community?.creatorId || community?.adminId) === user?.uid;
 
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) {
+                alert("Banner must be less than 5MB");
+                return;
+            }
+            setBannerFile(file);
+            const reader = new FileReader();
+            reader.onload = (event) => setBanner(event.target.result); // use banner string for preview
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleUpdate = async (e) => {
         e.preventDefault();
         if (!isAdmin) {
@@ -69,13 +86,21 @@ const CommunitySettings = () => {
         }
         setSaving(true);
         try {
+            let finalBannerUrl = banner;
+            if (removeBanner) {
+                finalBannerUrl = '';
+            } else if (bannerFile) {
+                finalBannerUrl = await uploadImageToStorage(bannerFile, `communities/banners/${id}`, { maxWidth: 1200, maxHeight: 600 });
+            }
+
             await updateDoc(doc(db, 'communities', id), {
                 name,
                 description,
-                banner,
+                banner: finalBannerUrl,
                 category,
                 college
             });
+            setBannerFile(null);
             alert("Community settings updated successfully!");
         } catch (err) {
             alert(`Error: ${err.message}`);
@@ -148,20 +173,39 @@ const CommunitySettings = () => {
                                 />
                             </div>
                             <div className="form-group">
-                                <label>Banner Image URL</label>
-                                <div className="input-with-icon">
-                                    <Camera size={18} />
-                                    <input 
-                                        type="url" 
-                                        value={banner} 
-                                        onChange={e => setBanner(e.target.value)} 
-                                        disabled={!isAdmin}
-                                    />
+                                <label>Banner Image</label>
+                                <div className="banner-upload-area" onClick={() => isAdmin && document.getElementById('comm-settings-banner-upload').click()} style={{ border: '2px dashed var(--border-color)', borderRadius: '12px', padding: banner ? '0' : '30px', textAlign: 'center', cursor: isAdmin ? 'pointer' : 'default', overflow: 'hidden', position: 'relative', minHeight: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg-secondary)' }}>
+                                    {banner ? (
+                                        <img src={banner} alt="Banner Preview" style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />
+                                    ) : (
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', color: 'var(--text-dim)' }}>
+                                            <ImageIcon size={32} />
+                                            <span>{isAdmin ? "Click to change banner" : "No banner set"}</span>
+                                        </div>
+                                    )}
+                                    {isAdmin && (
+                                        <input 
+                                            type="file" 
+                                            id="comm-settings-banner-upload"
+                                            hidden 
+                                            accept="image/*"
+                                            onChange={handleFileChange}
+                                        />
+                                    )}
                                 </div>
+                                {banner && isAdmin && (
+                                    <button type="button" onClick={() => {
+                                        setBanner('');
+                                        setBannerFile(null);
+                                        setRemoveBanner(true);
+                                    }} style={{ marginTop: '10px', background: 'transparent', border: '1px solid #ff4757', color: '#ff4757', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>
+                                        Remove Banner
+                                    </button>
+                                )}
                             </div>
                             <div className="form-group">
                                 <label>College Name</label>
-                                <select value={college} onChange={e => setCollege(e.target.value)} disabled={!isAdmin}>
+                                <select value={college} onChange={e => setCollege(e.target.value)} disabled={!isAdmin} className="settings-select">
                                     <option value="">Open Community (Global)</option>
                                     {colleges.map(c => (
                                         <option key={c} value={c}>{c}</option>

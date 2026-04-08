@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { db } from '../../firebase.config';
 import { collection, addDoc, serverTimestamp, doc, setDoc, arrayUnion } from 'firebase/firestore';
 import { useAuth } from '../../context/AuthContext';
-import { X, Camera, Globe, Lock, Shield } from 'lucide-react';
+import { X, Camera, Globe, Lock, Shield, Image as ImageIcon } from 'lucide-react';
+import { uploadImageToStorage } from '../../utils/imageUtils';
 import './CreateCommunityModal.css';
 
 const CreateCommunityModal = ({ isOpen, onClose }) => {
@@ -11,7 +12,8 @@ const CreateCommunityModal = ({ isOpen, onClose }) => {
     const [description, setDescription] = useState('');
     const [category, setCategory] = useState('Tech');
     const [college, setCollege] = useState('');
-    const [banner, setBanner] = useState('');
+    const [bannerFile, setBannerFile] = useState(null);
+    const [bannerPreview, setBannerPreview] = useState('');
     const [loading, setLoading] = useState(false);
 
     const colleges = [
@@ -29,6 +31,20 @@ const CreateCommunityModal = ({ isOpen, onClose }) => {
 
     if (!isOpen) return null;
 
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) {
+                alert("Banner must be less than 5MB");
+                return;
+            }
+            setBannerFile(file);
+            const reader = new FileReader();
+            reader.onload = (event) => setBannerPreview(event.target.result);
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!name || !description || !user) return;
@@ -37,13 +53,21 @@ const CreateCommunityModal = ({ isOpen, onClose }) => {
         console.log('Creating community for user:', user.uid);
         
         try {
+            // 0. Upload banner if provided
+            let bannerUrl = `https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=1200&auto=format&fit=crop`;
+            if (bannerFile) {
+                // Use a temporary unique ID for the initial upload or UUID. We'll use a unique string.
+                const uniqueId = Date.now().toString(36) + Math.random().toString(36).substring(2);
+                bannerUrl = await uploadImageToStorage(bannerFile, `communities/banners/${uniqueId}`, { maxWidth: 1200, maxHeight: 600 });
+            }
+
             // 1. Create the community document
             const commData = {
                 name: name.trim(),
                 description: description.trim(),
                 category: category || 'General',
                 college: college || 'Open Community',
-                banner: banner || `https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=800&auto=format&fit=crop`,
+                banner: bannerUrl,
                 adminId: user.uid,
                 creatorId: user.uid,
                 admins: [user.uid],
@@ -91,7 +115,8 @@ const CreateCommunityModal = ({ isOpen, onClose }) => {
             // Clear form
             setName('');
             setDescription('');
-            setBanner('');
+            setBannerFile(null);
+            setBannerPreview('');
             
         } catch (error) {
             console.error('CRITICAL Error creating community:', error);
@@ -154,19 +179,24 @@ const CreateCommunityModal = ({ isOpen, onClose }) => {
                     </div>
 
                     <div className="form-group">
-                        <label>Community Banner URL</label>
-                        <div className="input-with-icon">
-                            <Camera size={18} />
+                        <label>Community Banner</label>
+                        <div className="banner-upload-area" onClick={() => document.getElementById('comm-banner-upload').click()} style={{ border: '2px dashed var(--border-color)', borderRadius: '12px', padding: bannerPreview ? '0' : '30px', textAlign: 'center', cursor: 'pointer', overflow: 'hidden', position: 'relative', minHeight: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg-secondary)' }}>
+                            {bannerPreview ? (
+                                <img src={bannerPreview} alt="Banner Preview" style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', color: 'var(--text-dim)' }}>
+                                    <ImageIcon size={32} />
+                                    <span>Click to upload banner (Optional)</span>
+                                </div>
+                            )}
                             <input 
-                                type="url" 
-                                placeholder="https://example.com/image.jpg (Direct Image Link)"
-                                value={banner}
-                                onChange={(e) => setBanner(e.target.value)}
+                                type="file" 
+                                id="comm-banner-upload"
+                                hidden 
+                                accept="image/*"
+                                onChange={handleFileChange}
                             />
                         </div>
-                        <p className="form-hint" style={{ fontSize: '11px', color: 'var(--text-dim)', marginTop: '4px' }}>
-                            Tip: Copy the link of an image, not the page it's on.
-                        </p>
                     </div>
 
                     <div className="form-footer">
