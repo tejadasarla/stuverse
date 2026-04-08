@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Target, Globe, Users, Shield, Heart, Sparkles, PlusCircle } from 'lucide-react';
+import { Target, Globe, Users, Shield, Heart, Sparkles, PlusCircle, Linkedin } from 'lucide-react';
 import './About.css';
 
 const About = () => {
@@ -91,29 +91,44 @@ const About = () => {
                 </p>
                 <div className="creators-grid">
                     <div className="creator-card">
-                        <div className="creator-avatar-wrapper">
-                            <img src="/teja.jpg" alt="Teja" className="creator-avatar-img" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
-                            <div className="creator-avatar" style={{display: 'none'}}>T</div>
-                        </div>
-                        <h3>Teja</h3>
+                        <a href="https://www.linkedin.com/in/teja-dasarla-4b5647308/" target="_blank" rel="noopener noreferrer" className="creator-linkedin-link">
+                            <div className="creator-avatar-wrapper">
+                                <img src="/teja.jpg" alt="Teja" className="creator-avatar-img" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+                                <div className="creator-avatar" style={{display: 'none'}}>T</div>
+                            </div>
+                            <div className="creator-name-row">
+                                <h3>Teja</h3>
+                                <Linkedin size={16} className="linkedin-icon" />
+                            </div>
+                        </a>
                         <span className="creator-role">Lead Developer</span>
                         <p className="creator-desc">Spearheading the vision and driving the technical architecture of Stuverse with a passion for building seamless user experiences.</p>
                     </div>
                     <div className="creator-card">
-                        <div className="creator-avatar-wrapper">
-                            <img src="/leona.jpg" alt="Leona" className="creator-avatar-img" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
-                            <div className="creator-avatar" style={{display: 'none'}}>L</div>
-                        </div>
-                        <h3>Leona</h3>
+                        <a href="https://www.linkedin.com/in/kola-leona-philip-6450862b4/" target="_blank" rel="noopener noreferrer" className="creator-linkedin-link">
+                            <div className="creator-avatar-wrapper">
+                                <img src="/leona.jpg" alt="Leona" className="creator-avatar-img" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+                                <div className="creator-avatar" style={{display: 'none'}}>L</div>
+                            </div>
+                            <div className="creator-name-row">
+                                <h3>Leona</h3>
+                                <Linkedin size={16} className="linkedin-icon" />
+                            </div>
+                        </a>
                         <span className="creator-role">Backend Engineer</span>
                         <p className="creator-desc">Architecting robust database structures and ensuring the platform performs flawlessly under the hood.</p>
                     </div>
                     <div className="creator-card">
-                        <div className="creator-avatar-wrapper">
-                            <img src="/ricky.jpg" alt="Ricky" className="creator-avatar-img" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
-                            <div className="creator-avatar" style={{display: 'none'}}>R</div>
-                        </div>
-                        <h3>Ricky</h3>
+                        <a href="https://www.linkedin.com/in/illuri-ricky-raj-04197a32a/" target="_blank" rel="noopener noreferrer" className="creator-linkedin-link">
+                            <div className="creator-avatar-wrapper">
+                                <img src="/ricky.jpg" alt="Ricky" className="creator-avatar-img" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+                                <div className="creator-avatar" style={{display: 'none'}}>R</div>
+                            </div>
+                            <div className="creator-name-row">
+                                <h3>Ricky</h3>
+                                <Linkedin size={16} className="linkedin-icon" />
+                            </div>
+                        </a>
                         <span className="creator-role">Frontend Specialist</span>
                         <p className="creator-desc">Crafting beautiful interfaces and bringing the design strictly to life with dynamic animations and modern aesthetics.</p>
                     </div>
