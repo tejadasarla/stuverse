@@ -1,0 +1,11 @@
+﻿diff --git a/backend/routes/authRoutes.js b/backend/routes/authRoutes.js
+index 3216b9a..8f97d68 100644
+--- a/backend/routes/authRoutes.js
++++ b/backend/routes/authRoutes.js
+@@ -1,5 +1,6 @@
+ const express = require('express');
+ const router = express.Router();
++const authController = require('../controllers/authController');
+ const authMiddleware = require('../middleware/authMiddleware');
+ 
+ router.post('/register', authController.register);

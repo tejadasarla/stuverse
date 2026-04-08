@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useCall } from '../../context/CallContext';
 import { useAuth } from '../../context/AuthContext';
 import { Phone, PhoneOff, Video, XCircle, Mic, MicOff, VideoOff } from 'lucide-react';
@@ -19,6 +19,58 @@ const CallManager = () => {
     
     const localVideoRef = useRef(null);
     const remoteVideoRef = useRef(null);
+
+    const [isMuted, setIsMuted] = useState(false);
+    const [isVideoOff, setIsVideoOff] = useState(false);
+    const [callDuration, setCallDuration] = useState(0);
+
+    // Initial check for audio calls
+    useEffect(() => {
+        if (activeCall && activeCall.type === 'audio') {
+            setIsVideoOff(true);
+        }
+    }, [activeCall]);
+
+    // Timer effect
+    useEffect(() => {
+        let interval;
+        if (activeCall) {
+            interval = setInterval(() => {
+                setCallDuration(prev => prev + 1);
+            }, 1000);
+        } else {
+            setCallDuration(0);
+        }
+        return () => clearInterval(interval);
+    }, [activeCall]);
+
+    const formatDuration = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    const toggleMute = () => {
+        if (localStream) {
+            const audioTracks = localStream.getAudioTracks();
+            if (audioTracks.length > 0) {
+                audioTracks.forEach(track => { track.enabled = !track.enabled; });
+                setIsMuted(!audioTracks[0].enabled);
+            }
+        }
+    };
+
+    const toggleVideo = () => {
+        if (localStream) {
+            const videoTracks = localStream.getVideoTracks();
+            if (videoTracks.length > 0) {
+                videoTracks.forEach(track => { track.enabled = !track.enabled; });
+                setIsVideoOff(!videoTracks[0].enabled);
+            } else {
+                alert("Camera not available for this call.");
+            }
+        }
+    };
 
     useEffect(() => {
         if (localVideoRef.current && localStream) {
@@ -80,19 +132,33 @@ const CallManager = () => {
     if (activeCall) {
         return (
             <div className="active-call-overlay">
+                <div className="call-top-bar">
+                    <span className="call-timer">{formatDuration(callDuration)}</span>
+                </div>
                 <div className="video-grid">
                     <div className="remote-video-container">
                         <video ref={remoteVideoRef} autoPlay playsInline className="remote-video" />
                         <div className="participant-label">{activeCall.receiverId === user.uid ? activeCall.callerName : activeCall.receiverName}</div>
                     </div>
                     <div className="local-video-container">
-                        <video ref={localVideoRef} autoPlay playsInline muted className="local-video" />
+                        <video ref={localVideoRef} autoPlay playsInline muted className={`local-video ${isVideoOff ? 'hidden' : ''}`} />
+                        {isVideoOff && (
+                            <div className="video-off-placeholder">
+                                <VideoOff size={32} color="#888" />
+                            </div>
+                        )}
                         <div className="participant-label">You</div>
                     </div>
                 </div>
                 
                 <div className="call-controls">
-                    <button className="control-btn end-call" onClick={endCall}>
+                    <button className={`control-btn toggle-btn ${isMuted ? 'active-toggle' : ''}`} onClick={toggleMute} title={isMuted ? "Unmute" : "Mute"}>
+                        {isMuted ? <MicOff size={24} /> : <Mic size={24} />}
+                    </button>
+                    <button className={`control-btn toggle-btn ${isVideoOff ? 'active-toggle' : ''}`} onClick={toggleVideo} title={isVideoOff ? "Turn on camera" : "Turn off camera"}>
+                        {isVideoOff ? <VideoOff size={24} /> : <Video size={24} />}
+                    </button>
+                    <button className="control-btn end-call" onClick={endCall} title="End call">
                         <PhoneOff size={24} />
                     </button>
                 </div>

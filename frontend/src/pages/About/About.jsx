@@ -82,6 +82,43 @@ const About = () => {
                     </div>
                 </div>
             </section>
+
+            {/* Creators Section */}
+            <section className="creators-section">
+                <h2>Meet the Creators</h2>
+                <p className="creators-intro">
+                    Stuverse is proudly built by a passionate team of developers as our mini-project. We are dedicated to building a platform that brings students closer together.
+                </p>
+                <div className="creators-grid">
+                    <div className="creator-card">
+                        <div className="creator-avatar-wrapper">
+                            <img src="/teja.jpg" alt="Teja" className="creator-avatar-img" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+                            <div className="creator-avatar" style={{display: 'none'}}>T</div>
+                        </div>
+                        <h3>Teja</h3>
+                        <span className="creator-role">Lead Developer</span>
+                        <p className="creator-desc">Spearheading the vision and driving the technical architecture of Stuverse with a passion for building seamless user experiences.</p>
+                    </div>
+                    <div className="creator-card">
+                        <div className="creator-avatar-wrapper">
+                            <img src="/leona.jpg" alt="Leona" className="creator-avatar-img" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+                            <div className="creator-avatar" style={{display: 'none'}}>L</div>
+                        </div>
+                        <h3>Leona</h3>
+                        <span className="creator-role">Backend Engineer</span>
+                        <p className="creator-desc">Architecting robust database structures and ensuring the platform performs flawlessly under the hood.</p>
+                    </div>
+                    <div className="creator-card">
+                        <div className="creator-avatar-wrapper">
+                            <img src="/ricky.jpg" alt="Ricky" className="creator-avatar-img" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+                            <div className="creator-avatar" style={{display: 'none'}}>R</div>
+                        </div>
+                        <h3>Ricky</h3>
+                        <span className="creator-role">Frontend Specialist</span>
+                        <p className="creator-desc">Crafting beautiful interfaces and bringing the design strictly to life with dynamic animations and modern aesthetics.</p>
+                    </div>
+                </div>
+            </section>
         </div>
     );
 };

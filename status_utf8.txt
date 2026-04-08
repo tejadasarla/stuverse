@@ -1,0 +1,20 @@
+﻿On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   backend/routes/authRoutes.js
+	modified:   frontend/src/components/CallManager/CallManager.css
+	modified:   frontend/src/components/CallManager/CallManager.jsx
+	modified:   frontend/src/pages/About/About.css
+	modified:   frontend/src/pages/About/About.jsx
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	images.txt
+	images_utf8.txt
+	status.txt
+	status_utf8.txt
+
+no changes added to commit (use "git add" and/or "git commit -a")
