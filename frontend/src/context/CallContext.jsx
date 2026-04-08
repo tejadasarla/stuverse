@@ -26,6 +26,32 @@ export const CallProvider = ({ children }) => {
     const pc = useRef(new RTCPeerConnection(servers));
     const callUnsub = useRef(null);
     const candidateUnsub = useRef(null);
+    // Track when the call was accepted for duration calculation
+    const callAcceptedAt = useRef(null);
+    // Store call metadata needed for history writing
+    const callMeta = useRef(null);
+
+    const writeCallHistory = async (status, meta, durationSeconds = 0) => {
+        try {
+            await addDoc(collection(db, 'callHistory'), {
+                callerId: meta.callerId,
+                callerName: meta.callerName,
+                callerPhoto: meta.callerPhoto || '',
+                receiverId: meta.receiverId,
+                receiverName: meta.receiverName,
+                // participants array enables array-contains queries without composite indexes
+                participants: [meta.callerId, meta.receiverId],
+                type: meta.type || 'video',
+                status, // 'answered' | 'missed' | 'rejected'
+                durationSeconds,
+                context: meta.context || 'direct',
+                communityId: meta.communityId || null,
+                startedAt: serverTimestamp(),
+            });
+        } catch (err) {
+            console.error('Failed to write call history:', err);
+        }
+    };
 
     const cleanupCall = () => {
         if (callUnsub.current) callUnsub.current();
@@ -40,6 +66,8 @@ export const CallProvider = ({ children }) => {
         setOutgoingCall(null);
         setIncomingCall(null);
         setCallId(null);
+        callAcceptedAt.current = null;
+        callMeta.current = null;
         
         pc.current.close();
         pc.current = new RTCPeerConnection(servers);
@@ -115,6 +143,7 @@ export const CallProvider = ({ children }) => {
         const offerDescription = await pc.current.createOffer();
         await pc.current.setLocalDescription(offerDescription);
 
+        const isCommunityCall = !!fixedId;
         const callData = {
             callerId: user.uid,
             callerName: userData?.username || 'User',
@@ -127,6 +156,18 @@ export const CallProvider = ({ children }) => {
             createdAt: serverTimestamp()
         };
 
+        // Store metadata for history writing
+        callMeta.current = {
+            callerId: user.uid,
+            callerName: userData?.username || 'User',
+            callerPhoto: userData?.photoURL || '',
+            receiverId,
+            receiverName,
+            type,
+            context: isCommunityCall ? 'community' : 'direct',
+            communityId: isCommunityCall ? fixedId : null,
+        };
+
         await setDoc(callDoc, callData);
         setOutgoingCall({ ...callData, id: callDoc.id });
 
@@ -137,9 +178,19 @@ export const CallProvider = ({ children }) => {
                 pc.current.setRemoteDescription(new RTCSessionDescription(data.answer));
             }
             if (data?.status === 'accepted') {
+                // Mark when call was accepted for duration tracking
+                if (!callAcceptedAt.current) {
+                    callAcceptedAt.current = Date.now();
+                }
                 setActiveCall({ ...data, id: snapshot.id });
                 setOutgoingCall(null);
-            } else if (data?.status === 'rejected' || data?.status === 'ended') {
+            } else if (data?.status === 'rejected') {
+                // Write a "missed" record for the caller
+                if (callMeta.current) {
+                    writeCallHistory('missed', callMeta.current, 0);
+                }
+                cleanupCall();
+            } else if (data?.status === 'ended') {
                 cleanupCall();
             }
         });
@@ -204,6 +255,21 @@ export const CallProvider = ({ children }) => {
             status: 'accepted' 
         });
 
+        // Mark accepted time for duration calculation
+        callAcceptedAt.current = Date.now();
+
+        // Store metadata for history writing (receiver side)
+        callMeta.current = {
+            callerId: call.callerId,
+            callerName: call.callerName,
+            callerPhoto: call.callerPhoto || '',
+            receiverId: user.uid,
+            receiverName: userData?.username || 'User',
+            type: call.type || 'video',
+            context: 'direct',
+            communityId: null,
+        };
+
         if (candidateUnsub.current) candidateUnsub.current();
         candidateUnsub.current = onSnapshot(collection(callDoc, 'offerCandidates'), (snapshot) => {
             snapshot.docChanges().forEach((change) => {
@@ -230,14 +296,36 @@ export const CallProvider = ({ children }) => {
     const rejectCall = async () => {
         if (incomingCall) {
             await updateDoc(doc(db, 'calls', incomingCall.id), { status: 'rejected' });
+            // Write rejected history for the receiver
+            await writeCallHistory('rejected', {
+                callerId: incomingCall.callerId,
+                callerName: incomingCall.callerName,
+                callerPhoto: incomingCall.callerPhoto || '',
+                receiverId: user.uid,
+                receiverName: userData?.username || 'User',
+                type: incomingCall.type || 'video',
+                context: 'direct',
+                communityId: null,
+            }, 0);
             setIncomingCall(null);
         }
     };
 
     const endCall = async () => {
+        // Calculate duration before cleanup
+        const durationSeconds = callAcceptedAt.current
+            ? Math.round((Date.now() - callAcceptedAt.current) / 1000)
+            : 0;
+
         if (callId || activeCall?.id) {
             await updateDoc(doc(db, 'calls', callId || activeCall.id), { status: 'ended' });
         }
+
+        // Write answered call history (only caller side writes, to avoid duplicates)
+        if (callMeta.current && callMeta.current.callerId === user?.uid) {
+            await writeCallHistory('answered', callMeta.current, durationSeconds);
+        }
+
         cleanupCall();
     };
 
@@ -249,4 +337,3 @@ export const CallProvider = ({ children }) => {
 };
 
 export const useCall = () => useContext(CallContext);
-

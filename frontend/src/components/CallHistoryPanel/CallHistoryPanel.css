@@ -1,0 +1,296 @@
+/* Call History Panel */
+.ch-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(4px);
+    z-index: 3000;
+    display: flex;
+    justify-content: flex-end;
+    animation: chFadeIn 0.2s ease;
+}
+
+@keyframes chFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.ch-panel {
+    width: 380px;
+    max-width: 100vw;
+    height: 100%;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.12);
+    animation: chSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes chSlideIn {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
+
+/* Header */
+.ch-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid #f1f5f9;
+    background: #fff;
+    flex-shrink: 0;
+}
+
+.ch-header h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+
+.ch-close-btn {
+    background: #f1f5f9;
+    border: none;
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #64748b;
+    transition: all 0.2s;
+}
+
+.ch-close-btn:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+/* Body */
+.ch-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 0;
+}
+
+.ch-body::-webkit-scrollbar { width: 4px; }
+.ch-body::-webkit-scrollbar-track { background: transparent; }
+.ch-body::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
+
+/* Loading */
+.ch-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 60px 20px;
+    color: #94a3b8;
+}
+
+.ch-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #e2e8f0;
+    border-top-color: #6366f1;
+    border-radius: 50%;
+    animation: chSpin 0.8s linear infinite;
+}
+
+@keyframes chSpin {
+    to { transform: rotate(360deg); }
+}
+
+/* Empty State */
+.ch-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 30px;
+    text-align: center;
+    gap: 10px;
+}
+
+.ch-empty-icon {
+    width: 72px;
+    height: 72px;
+    background: linear-gradient(135deg, #eef2ff, #f0fdf4);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #818cf8;
+    margin-bottom: 8px;
+}
+
+.ch-empty p {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #334155;
+    margin: 0;
+}
+
+.ch-empty span {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    line-height: 1.5;
+}
+
+/* Record List */
+.ch-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 4px 12px;
+}
+
+.ch-record {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 12px;
+    border-radius: 14px;
+    cursor: default;
+    transition: background 0.15s ease;
+}
+
+.ch-record:hover {
+    background: #f8fafc;
+}
+
+/* Status-based left accent */
+.ch-record-answered { border-left: 3px solid #22c55e; }
+.ch-record-missed   { border-left: 3px solid #f59e0b; }
+.ch-record-rejected { border-left: 3px solid #ef4444; }
+
+/* Call type icon */
+.ch-record-icon {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    background: #f1f5f9;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #475569;
+    flex-shrink: 0;
+}
+
+.ch-record-answered .ch-record-icon { background: #dcfce7; color: #16a34a; }
+.ch-record-missed   .ch-record-icon { background: #fef3c7; color: #d97706; }
+.ch-record-rejected .ch-record-icon { background: #fee2e2; color: #dc2626; }
+
+.ch-direction {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #fff;
+}
+
+.ch-direction-answered { background: #22c55e; color: white; }
+.ch-direction-missed   { background: #f59e0b; color: white; }
+.ch-direction-rejected { background: #ef4444; color: white; }
+
+/* Record info */
+.ch-record-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.ch-record-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+}
+
+.ch-record-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1e293b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ch-record-bottom {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.ch-record-time {
+    font-size: 0.78rem;
+    color: #94a3b8;
+}
+
+.ch-record-duration {
+    font-size: 0.78rem;
+    color: #64748b;
+    font-weight: 600;
+    background: #f1f5f9;
+    padding: 2px 7px;
+    border-radius: 20px;
+}
+
+.ch-record-type {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+/* Status Badge */
+.ch-status-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.ch-status-answered { background: #dcfce7; color: #15803d; }
+.ch-status-missed   { background: #fef3c7; color: #b45309; }
+.ch-status-rejected { background: #fee2e2; color: #b91c1c; }
+
+/* Call Back Button */
+.ch-callback-btn {
+    background: linear-gradient(135deg, #6366f1, #818cf8);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+}
+
+.ch-callback-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(99, 102, 241, 0.4);
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+    .ch-panel {
+        width: 100vw;
+    }
+}

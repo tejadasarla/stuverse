@@ -647,7 +647,8 @@
     font-weight: 500;
 }
 
-.form-group input {
+.form-group input,
+.form-group textarea {
     width: 100%;
     padding: 12px 15px;
     border: 2px solid #e2e8f0;
@@ -655,9 +656,17 @@
     font-size: 1rem;
     transition: all 0.3s ease;
     font-family: inherit;
+    box-sizing: border-box;
 }
 
-.form-group input:focus {
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+    line-height: 1.6;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
     outline: none;
     border-color: var(--primary);
     box-shadow: 0 0 0 4px rgba(0, 69, 255, 0.1);

@@ -1739,3 +1739,25 @@
         height: 24px;
     }
 }
+
+/* ─── Emoji Picker Search Fix ──────────────────────────────────────────────── */
+/* The global * { padding: 0; margin: 0 } reset strips the emoji picker's      */
+/* internal input padding making the search bar look broken. Restore it here.  */
+.emoji-picker-container .epr-search-container input[type="text"],
+.emoji-picker-container input[type="text"] {
+    padding: 8px 36px 8px 36px !important;
+    height: 40px !important;
+    border-radius: 8px !important;
+    border: 1px solid #e2e8f0 !important;
+    background-color: #f8fafc !important;
+    font-size: 0.9rem !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    outline: none !important;
+}
+
+.emoji-picker-container input[type="text"]:focus {
+    border-color: #6366f1 !important;
+    background-color: #fff !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12) !important;
+}
