@@ -24,12 +24,19 @@ const CallManager = () => {
     const [isVideoOff, setIsVideoOff] = useState(false);
     const [callDuration, setCallDuration] = useState(0);
 
-    // Initial check for audio calls
+    // Sync UI state with actual stream tracks
     useEffect(() => {
-        if (activeCall && activeCall.type === 'audio') {
-            setIsVideoOff(true);
+        if (localStream) {
+            const audioTrack = localStream.getAudioTracks()[0];
+            const videoTrack = localStream.getVideoTracks()[0];
+            
+            if (audioTrack) setIsMuted(!audioTrack.enabled);
+            if (videoTrack) setIsVideoOff(!videoTrack.enabled);
+        } else {
+            setIsMuted(false);
+            setIsVideoOff(false);
         }
-    }, [activeCall]);
+    }, [localStream]);
 
     // Timer effect
     useEffect(() => {

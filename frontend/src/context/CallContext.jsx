@@ -78,7 +78,16 @@ export const CallProvider = ({ children }) => {
             }
         }
 
-        const stream = await navigator.mediaDevices.getUserMedia({ video: type === 'video', audio: true });
+        let stream;
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            if (type === 'audio') {
+                stream.getVideoTracks().forEach(track => track.enabled = false);
+            }
+        } catch (err) {
+            console.warn("Could not get video stream, falling back to audio only.");
+            stream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
+        }
         setLocalStream(stream);
         
         const remoteStr = new MediaStream();
@@ -154,7 +163,16 @@ export const CallProvider = ({ children }) => {
     };
 
     const acceptCallWithData = async (call) => {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: call.type === 'video', audio: true });
+        let stream;
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            if (call.type === 'audio') {
+                stream.getVideoTracks().forEach(track => track.enabled = false);
+            }
+        } catch (err) {
+            console.warn("Could not get video stream, falling back to audio only.");
+            stream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
+        }
         setLocalStream(stream);
 
         const remoteStr = new MediaStream();
