@@ -13,12 +13,14 @@ const CallManager = () => {
         rejectCall, 
         endCall,
         localStream,
-        remoteStream
+        remoteStream,
+        remoteVideoEl
     } = useCall();
     const { user, userData } = useAuth();
     
     const localVideoRef = useRef(null);
-    const remoteVideoRef = useRef(null);
+    // remoteVideoRef is shared with CallContext so ontrack can directly set srcObject
+    const remoteVideoRef = remoteVideoEl;
 
     const [isMuted, setIsMuted] = useState(false);
     const [isVideoOff, setIsVideoOff] = useState(false);
@@ -82,14 +84,33 @@ const CallManager = () => {
     useEffect(() => {
         if (localVideoRef.current && localStream) {
             localVideoRef.current.srcObject = localStream;
+            localVideoRef.current.play().catch(() => {});
         }
     }, [localStream, activeCall]);
 
     useEffect(() => {
         if (remoteVideoRef.current && remoteStream) {
             remoteVideoRef.current.srcObject = remoteStream;
+            remoteVideoRef.current.play().catch(() => {});
         }
     }, [remoteStream, activeCall]);
+
+    // Extra safety: re-attach srcObject whenever the video element mounts (activeCall triggers render)
+    const attachRemoteStream = (el) => {
+        remoteVideoRef.current = el;
+        if (el && remoteStream) {
+            el.srcObject = remoteStream;
+            el.play().catch(() => {});
+        }
+    };
+
+    const attachLocalStream = (el) => {
+        localVideoRef.current = el;
+        if (el && localStream) {
+            el.srcObject = localStream;
+            el.play().catch(() => {});
+        }
+    };
 
     if (incomingCall) {
         return (
@@ -144,11 +165,11 @@ const CallManager = () => {
                 </div>
                 <div className="video-grid">
                     <div className="remote-video-container">
-                        <video ref={remoteVideoRef} autoPlay playsInline className="remote-video" />
+                        <video ref={attachRemoteStream} autoPlay playsInline className="remote-video" />
                         <div className="participant-label">{activeCall.receiverId === user.uid ? activeCall.callerName : activeCall.receiverName}</div>
                     </div>
                     <div className="local-video-container">
-                        <video ref={localVideoRef} autoPlay playsInline muted className={`local-video ${isVideoOff ? 'hidden' : ''}`} />
+                        <video ref={attachLocalStream} autoPlay playsInline muted className={`local-video ${isVideoOff ? 'hidden' : ''}`} />
                         {isVideoOff && (
                             <div className="video-off-placeholder">
                                 <VideoOff size={32} color="#888" />

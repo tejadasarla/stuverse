@@ -30,6 +30,8 @@ export const CallProvider = ({ children }) => {
     const callAcceptedAt = useRef(null);
     // Store call metadata needed for history writing
     const callMeta = useRef(null);
+    // Direct ref to remote video element — allows ontrack to bypass React render timing
+    const remoteVideoEl = useRef(null);
 
     const writeCallHistory = async (status, meta, durationSeconds = 0) => {
         try {
@@ -124,10 +126,14 @@ export const CallProvider = ({ children }) => {
         stream.getTracks().forEach((track) => pc.current.addTrack(track, stream));
 
         pc.current.ontrack = (event) => {
-            if (event.streams && event.streams[0]) {
-                setRemoteStream(event.streams[0]);
-            } else {
-                setRemoteStream(new MediaStream([event.track]));
+            const stream = (event.streams && event.streams[0])
+                ? event.streams[0]
+                : new MediaStream([event.track]);
+            setRemoteStream(stream);
+            // Also set directly on the video element if it's already mounted
+            if (remoteVideoEl.current) {
+                remoteVideoEl.current.srcObject = stream;
+                remoteVideoEl.current.play().catch(() => {});
             }
         };
 
@@ -232,10 +238,14 @@ export const CallProvider = ({ children }) => {
         stream.getTracks().forEach((track) => pc.current.addTrack(track, stream));
 
         pc.current.ontrack = (event) => {
-            if (event.streams && event.streams[0]) {
-                setRemoteStream(event.streams[0]);
-            } else {
-                setRemoteStream(new MediaStream([event.track]));
+            const stream = (event.streams && event.streams[0])
+                ? event.streams[0]
+                : new MediaStream([event.track]);
+            setRemoteStream(stream);
+            // Also set directly on the video element if it's already mounted
+            if (remoteVideoEl.current) {
+                remoteVideoEl.current.srcObject = stream;
+                remoteVideoEl.current.play().catch(() => {});
             }
         };
 
@@ -330,7 +340,7 @@ export const CallProvider = ({ children }) => {
     };
 
     return (
-        <CallContext.Provider value={{ initiateCall, incomingCall, outgoingCall, activeCall, acceptCall, rejectCall, endCall, joinCallById, localStream, remoteStream }}>
+        <CallContext.Provider value={{ initiateCall, incomingCall, outgoingCall, activeCall, acceptCall, rejectCall, endCall, joinCallById, localStream, remoteStream, remoteVideoEl }}>
             {children}
         </CallContext.Provider>
     );
