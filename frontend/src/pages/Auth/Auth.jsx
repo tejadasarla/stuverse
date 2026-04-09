@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Mail, Lock, Github, Linkedin } from 'lucide-react';
+import { User, Mail, Lock } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { auth } from '../../firebase.config';
 import { signInWithEmailAndPassword } from 'firebase/auth';
@@ -110,11 +110,7 @@ const Auth = () => {
               <span className="auth-logo-text">Stuverse</span>
             </div>
             <h1>Registration</h1>
-            <div className="social-icons">
-              <a href="#" className="icon"><Github size={20} /></a>
-              <a href="#" className="icon"><Linkedin size={20} fill="#0A66C2" color="#0A66C2" /></a>
-            </div>
-            <span style={{ fontSize: '12px' }}>or register with social platforms</span>
+
             <Input type="text" label="Username" id="signup-name" name="username" icon={User} onChange={handleInputChange} value={formData.username} required />
             <Input
               type="email"
@@ -144,11 +140,7 @@ const Auth = () => {
               <span className="auth-logo-text">Stuverse</span>
             </div>
             <h1>Sign In</h1>
-            <div className="social-icons">
-              <a href="#" className="icon"><Github size={20} /></a>
-              <a href="#" className="icon"><Linkedin size={20} fill="#0A66C2" color="#0A66C2" /></a>
-            </div>
-            <span style={{ fontSize: '12px' }}>or use your email password</span>
+
             <Input
               type="email"
               label="College Email"

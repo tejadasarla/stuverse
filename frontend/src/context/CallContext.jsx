@@ -135,13 +135,16 @@ export const CallProvider = ({ children }) => {
         stream.getTracks().forEach((track) => pc.current.addTrack(track, stream));
 
         pc.current.ontrack = (event) => {
-            event.streams[0]?.getTracks().forEach((track) => {
-                remoteStreamRef.current.addTrack(track);
-            });
-            setRemoteStream(remoteStreamRef.current);
-            // Also set directly on the video element if it's already mounted
+            console.log('Remote track received:', event.track.kind);
+            remoteStreamRef.current.addTrack(event.track);
+            
+            // Create a new MediaStream instance from existing tracks to force React state update
+            const newStream = new MediaStream(remoteStreamRef.current.getTracks());
+            setRemoteStream(newStream);
+            
+            // Also set directly on the video element if it's already mounted for immediate feedback
             if (remoteVideoEl.current) {
-                remoteVideoEl.current.srcObject = remoteStreamRef.current;
+                remoteVideoEl.current.srcObject = newStream;
                 remoteVideoEl.current.play().catch(() => {});
             }
         };
@@ -254,13 +257,16 @@ export const CallProvider = ({ children }) => {
         stream.getTracks().forEach((track) => pc.current.addTrack(track, stream));
 
         pc.current.ontrack = (event) => {
-            event.streams[0]?.getTracks().forEach((track) => {
-                remoteStreamRef.current.addTrack(track);
-            });
-            setRemoteStream(remoteStreamRef.current);
-            // Also set directly on the video element if it's already mounted
+            console.log('Remote track received:', event.track.kind);
+            remoteStreamRef.current.addTrack(event.track);
+            
+            // Create a new MediaStream instance from existing tracks to force React state update
+            const newStream = new MediaStream(remoteStreamRef.current.getTracks());
+            setRemoteStream(newStream);
+            
+            // Also set directly on the video element if it's already mounted for immediate feedback
             if (remoteVideoEl.current) {
-                remoteVideoEl.current.srcObject = remoteStreamRef.current;
+                remoteVideoEl.current.srcObject = newStream;
                 remoteVideoEl.current.play().catch(() => {});
             }
         };

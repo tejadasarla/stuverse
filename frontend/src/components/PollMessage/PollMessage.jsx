@@ -41,7 +41,7 @@ const PollMessage = ({ pollData, onVote, currentUserId, members }) => {
 
             <div className="poll-options">
                 {options.map((option, index) => {
-                    const voterIds = votes[option] || [];
+                    const voterIds = (votes && votes[option]) || [];
                     const voteCount = voterIds.length;
                     const percentage = totalVotes > 0 ? (voteCount / totalVotes) * 100 : 0;
                     const voted = hasVotedFor(option);

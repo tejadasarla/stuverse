@@ -211,20 +211,7 @@ body {
     }
 }
 
-.social-icons {
-    margin: 20px 0;
-}
 
-.social-icons a {
-    border: 1px solid #ccc;
-    border-radius: 20%;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    margin: 0 3px;
-    width: 40px;
-    height: 40px;
-}
 
 .toggle-container {
     position: absolute;
@@ -336,9 +323,7 @@ body {
         height: auto;
     }
 
-    .social-icons {
-        margin: 10px 0;
-    }
+
 
     .input-group {
         margin: 5px 0;

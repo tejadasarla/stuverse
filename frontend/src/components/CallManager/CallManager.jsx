@@ -56,6 +56,11 @@ const CallManager = () => {
 
     const [isMuted, setIsMuted] = useState(false);
     const [isVideoOff, setIsVideoOff] = useState(false);
+    const [isLocalMain, setIsLocalMain] = useState(false);
+
+    const toggleVideoSize = () => {
+        setIsLocalMain(!isLocalMain);
+    };
 
     const toggleMute = () => {
         if (localStream) {
@@ -159,16 +164,25 @@ const CallManager = () => {
         return (
             <div className="active-call-overlay">
                 <CallTimer activeCall={activeCall} />
-                <div className="video-grid">
-                    <div className="remote-video-container">
+                <div className={`video-grid ${isLocalMain ? 'local-is-main' : 'remote-is-main'}`}>
+                    <div 
+                        className={`video-wrapper shadow-lg ${isLocalMain ? 'preview-video' : 'main-video'}`}
+                        onClick={isLocalMain ? toggleVideoSize : undefined}
+                    >
                         <video ref={attachRemoteStream} autoPlay playsInline className="remote-video" />
-                        <div className="participant-label">{activeCall.receiverId === user.uid ? activeCall.callerName : activeCall.receiverName}</div>
+                        <div className="participant-label">
+                            {activeCall.receiverId === user.uid ? activeCall.callerName : activeCall.receiverName}
+                        </div>
                     </div>
-                    <div className="local-video-container">
+
+                    <div 
+                        className={`video-wrapper shadow-lg ${isLocalMain ? 'main-video' : 'preview-video'}`}
+                        onClick={!isLocalMain ? toggleVideoSize : undefined}
+                    >
                         <video ref={attachLocalStream} autoPlay playsInline muted className={`local-video ${isVideoOff ? 'hidden' : ''}`} />
                         {isVideoOff && (
                             <div className="video-off-placeholder">
-                                <VideoOff size={32} color="#888" />
+                                <VideoOff size={isLocalMain ? 64 : 32} color="#888" />
                             </div>
                         )}
                         <div className="participant-label">You</div>

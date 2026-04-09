@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Mail, Lock, User, Github, Linkedin, ArrowLeft } from 'lucide-react';
+import { X, Mail, Lock, User, ArrowLeft } from 'lucide-react';
 import { auth } from '../../firebase.config';
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
@@ -186,11 +186,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login', triggerRestricted =
                             <span>Stuverse</span>
                         </div>
                         <h1>Registration</h1>
-                        <div className="modal-socials">
-                            <a href="#" className="social-icon"><Github size={18} /></a>
-                            <a href="#" className="social-icon"><Linkedin size={18} fill="#0A66C2" color="#0A66C2" /></a>
-                        </div>
-                        <span className="small-hint">or register with college email</span>
+
                         <Input type="text" label="Username" name="username" icon={User} onChange={handleInputChange} value={formData.username} required />
                         <Input
                             type="email"
@@ -218,11 +214,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login', triggerRestricted =
                             <span>Stuverse</span>
                         </div>
                         <h1>Sign In</h1>
-                        <div className="modal-socials">
-                            <a href="#" className="social-icon"><Github size={18} /></a>
-                            <a href="#" className="social-icon"><Linkedin size={18} fill="#0A66C2" color="#0A66C2" /></a>
-                        </div>
-                        <span className="small-hint">or use your email password</span>
+
                         <Input type="email" label="College Email" name="email" icon={Mail} onChange={handleInputChange} value={formData.email} required />
                         <Input type="password" label="Password" name="password" icon={Lock} onChange={handleInputChange} value={formData.password} required />
                         {error && !isSignUp && <p className="modal-error">{error}</p>}

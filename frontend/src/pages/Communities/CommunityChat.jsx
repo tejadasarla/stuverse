@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useCall } from '../../context/CallContext';
 import { db } from '../../firebase.config';
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, arrayUnion, arrayRemove, where, deleteDoc, increment, getDocs, writeBatch } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, arrayUnion, arrayRemove, where, deleteDoc, increment, getDocs, writeBatch, runTransaction } from 'firebase/firestore';
 import { Send, ArrowLeft, Hash, Users, Image as ImageIcon, Smile, Bell, MoreVertical, Plus, Trash2, UserMinus, LogOut, Info, X, Video, School, Lock, Paperclip, File, Download, Loader2, BarChart2, FileText, Music } from 'lucide-react';
 import EmojiPicker from 'emoji-picker-react';
 import { uploadFileToCloudinary } from '../../utils/imageUtils';
@@ -359,41 +359,58 @@ const CommunityChat = () => {
     };
 
     const handleVote = async (messageId, option) => {
+        if (!user) return;
+        
         try {
             const msgRef = doc(db, 'communities', id, 'groups', activeGroupId, 'messages', messageId);
-            const msg = messages.find(m => m.id === messageId);
-            if (!msg || msg.type !== 'poll') return;
+            
+            await runTransaction(db, async (transaction) => {
+                const msgDoc = await transaction.get(msgRef);
+                if (!msgDoc.exists()) throw "Message does not exist!";
 
-            const currentVotes = { ...msg.pollData.votes };
-            const allowMultiple = msg.pollData.allowMultiple;
+                const msgData = msgDoc.data();
+                if (msgData.type !== 'poll') return;
 
-            // Logic for voting
-            if (allowMultiple) {
-                // Toggle vote
-                if (currentVotes[option].includes(user.uid)) {
-                    currentVotes[option] = currentVotes[option].filter(uid => uid !== user.uid);
+                const currentVotes = { ...msgData.pollData.votes };
+                const allowMultiple = msgData.pollData.allowMultiple;
+
+                // Ensure the option exists in currentVotes array
+                if (!currentVotes[option]) {
+                    currentVotes[option] = [];
+                }
+
+                if (allowMultiple) {
+                    // Toggle vote
+                    if (currentVotes[option].includes(user.uid)) {
+                        currentVotes[option] = currentVotes[option].filter(uid => uid !== user.uid);
+                    } else {
+                        currentVotes[option] = [...currentVotes[option], user.uid];
+                    }
                 } else {
-                    currentVotes[option] = [...currentVotes[option], user.uid];
+                    // Single choice: remove from all other options, toggle on current
+                    const alreadyVotedThis = currentVotes[option].includes(user.uid);
+                    
+                    // Clear user from all options
+                    Object.keys(currentVotes).forEach(opt => {
+                        currentVotes[opt] = currentVotes[opt].filter(uid => uid !== user.uid);
+                    });
+
+                    if (!alreadyVotedThis) {
+                        currentVotes[option] = [...currentVotes[option], user.uid];
+                    }
                 }
-            } else {
-                // Single choice: remove from all other options, toggle on current
-                const alreadyVotedThis = currentVotes[option].includes(user.uid);
-                
-                // Clear user from all options
-                Object.keys(currentVotes).forEach(opt => {
-                    currentVotes[opt] = currentVotes[opt].filter(uid => uid !== user.uid);
+
+                transaction.update(msgRef, {
+                    'pollData.votes': currentVotes
                 });
-
-                if (!alreadyVotedThis) {
-                    currentVotes[option] = [...currentVotes[option], user.uid];
-                }
-            }
-
-            await updateDoc(msgRef, {
-                'pollData.votes': currentVotes
             });
         } catch (error) {
             console.error("Error voting:", error);
+            if (error?.code === 'permission-denied') {
+                alert("Permission Denied: You don't have permission to vote in this poll. Please ensure the Firestore Rules are updated.");
+            } else {
+                alert("Failed to save your vote. Please try again.");
+            }
         }
     };
 

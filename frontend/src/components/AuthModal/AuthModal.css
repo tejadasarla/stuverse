@@ -169,34 +169,9 @@
     color: var(--primary);
 }
 
-.modal-socials {
-    margin: 15px 0;
-    display: flex;
-    gap: 8px;
-}
 
-.social-icon {
-    border: 1px solid #ddd;
-    border-radius: 12px;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    width: 36px;
-    height: 36px;
-    transition: all 0.3s ease;
-}
 
-.social-icon:hover {
-    background: #f1f5f9;
-    transform: translateY(-2px);
-    border-color: var(--primary);
-}
 
-.small-hint {
-    font-size: 12px;
-    color: #64748b;
-    margin-bottom: 10px;
-}
 
 .modal-submit-btn {
     background-color: var(--primary);
