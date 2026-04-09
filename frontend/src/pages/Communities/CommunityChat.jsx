@@ -342,7 +342,7 @@ const CommunityChat = () => {
 
         setIsUploading(true);
         try {
-            const fileUrl = await uploadFileToCloudinary(file, 'stuverse_chat_uploads');
+            const fileUrl = await uploadFileToCloudinary(file, `Chat/Community Groups/${id}/${activeGroupId}`);
             await handleSendMessage(null, {
                 url: fileUrl,
                 type: file.type,

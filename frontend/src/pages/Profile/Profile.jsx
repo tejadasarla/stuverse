@@ -258,6 +258,8 @@ const Profile = () => {
             await refreshUserData();
             setIsEditing(false);
             setImagePreview(null);
+            setImageFile(null);
+            setRemovePhoto(false);
             alert('Profile updated successfully!');
         } catch (error) {
             console.error('Update error:', error);
@@ -444,7 +446,7 @@ const Profile = () => {
                         <form onSubmit={handleUpdateProfile}>
                             <div className="avatar-edit-section">
                                 <div className="avatar-preview-wrapper" onClick={() => document.getElementById('profile-upload').click()}>
-                                    {imagePreview || userData?.photoURL ? (
+                                    {!removePhoto && (imagePreview || userData?.photoURL) ? (
                                         <img src={imagePreview || userData.photoURL} alt="Preview" />
                                     ) : (
                                         <div className="placeholder-preview">
@@ -462,7 +464,7 @@ const Profile = () => {
                                     accept="image/*"
                                     onChange={handleImageChange}
                                 />
-                                {(imagePreview || userData?.photoURL) && (
+                                {!removePhoto && (imagePreview || userData?.photoURL) && (
                                     <button type="button" className="remove-photo-btn" onClick={handleRemovePhoto} style={{ marginTop: '10px', background: 'transparent', border: '1px solid #ff4757', color: '#ff4757', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>
                                         Remove Photo
                                     </button>

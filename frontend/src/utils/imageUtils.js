@@ -95,7 +95,9 @@ export const uploadFileToCloudinary = async (file, folder = 'stuverse_uploads', 
         const formData = new FormData();
         formData.append('file', fileToUpload);
         formData.append('upload_preset', 'stuverse_uploads');
+        // Sending both to handle different Cloudinary API versions/presets
         formData.append('folder', folder);
+        formData.append('asset_folder', folder);
 
         // Determine resource type: 'image', 'video', or 'raw'
         // 'auto' is the safest bet for a generic upload function
