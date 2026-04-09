@@ -4,10 +4,12 @@ import { useAuth } from '../../context/AuthContext';
 import { useCall } from '../../context/CallContext';
 import { db } from '../../firebase.config';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, arrayUnion, arrayRemove, where, deleteDoc, increment, getDocs, writeBatch } from 'firebase/firestore';
-import { Send, ArrowLeft, Hash, Users, Image as ImageIcon, Smile, Bell, MoreVertical, Plus, Trash2, UserMinus, LogOut, Info, X, Video, School, Lock, History, Paperclip, File, Download, Loader2 } from 'lucide-react';
+import { Send, ArrowLeft, Hash, Users, Image as ImageIcon, Smile, Bell, MoreVertical, Plus, Trash2, UserMinus, LogOut, Info, X, Video, School, Lock, History, Paperclip, File, Download, Loader2, BarChart2, FileText, Music } from 'lucide-react';
 import EmojiPicker from 'emoji-picker-react';
 import { uploadFileToCloudinary } from '../../utils/imageUtils';
 import CallHistoryPanel from '../../components/CallHistoryPanel/CallHistoryPanel';
+import CreatePollModal from '../../components/CreatePollModal/CreatePollModal';
+import PollMessage from '../../components/PollMessage/PollMessage';
 import './CommunityChat.css';
 
 // Community Chat Component
@@ -40,6 +42,10 @@ const CommunityChat = () => {
     const headerMenuRef = useRef(null);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef(null);
+    const [isPollModalOpen, setIsPollModalOpen] = useState(false);
+    const [showAttachMenu, setShowAttachMenu] = useState(false);
+    const [fileAcceptType, setFileAcceptType] = useState('image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.txt');
+    const attachMenuRef = useRef(null);
 
     const isJoined = userData?.communities?.includes(id) || currentCommunity?.adminId === user?.uid;
 
@@ -226,6 +232,9 @@ const CommunityChat = () => {
             if (headerMenuRef.current && !headerMenuRef.current.contains(event.target)) {
                 setHeaderMenuOpen(false);
             }
+            if (attachMenuRef.current && !attachMenuRef.current.contains(event.target)) {
+                setShowAttachMenu(false);
+            }
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -331,6 +340,64 @@ const CommunityChat = () => {
         }
     };
 
+    const handleCreatePoll = async (pollData) => {
+        try {
+            await addDoc(collection(db, 'communities', id, 'groups', activeGroupId, 'messages'), {
+                type: 'poll',
+                pollData: {
+                    ...pollData,
+                    votes: pollData.options.reduce((acc, opt) => ({ ...acc, [opt]: [] }), {})
+                },
+                userId: user.uid,
+                username: userData?.username || 'User',
+                userPhoto: userData?.photoURL || '',
+                createdAt: serverTimestamp()
+            });
+        } catch (error) {
+            console.error("Error creating poll:", error);
+            alert("Failed to create poll.");
+        }
+    };
+
+    const handleVote = async (messageId, option) => {
+        try {
+            const msgRef = doc(db, 'communities', id, 'groups', activeGroupId, 'messages', messageId);
+            const msg = messages.find(m => m.id === messageId);
+            if (!msg || msg.type !== 'poll') return;
+
+            const currentVotes = { ...msg.pollData.votes };
+            const allowMultiple = msg.pollData.allowMultiple;
+
+            // Logic for voting
+            if (allowMultiple) {
+                // Toggle vote
+                if (currentVotes[option].includes(user.uid)) {
+                    currentVotes[option] = currentVotes[option].filter(uid => uid !== user.uid);
+                } else {
+                    currentVotes[option] = [...currentVotes[option], user.uid];
+                }
+            } else {
+                // Single choice: remove from all other options, toggle on current
+                const alreadyVotedThis = currentVotes[option].includes(user.uid);
+                
+                // Clear user from all options
+                Object.keys(currentVotes).forEach(opt => {
+                    currentVotes[opt] = currentVotes[opt].filter(uid => uid !== user.uid);
+                });
+
+                if (!alreadyVotedThis) {
+                    currentVotes[option] = [...currentVotes[option], user.uid];
+                }
+            }
+
+            await updateDoc(msgRef, {
+                'pollData.votes': currentVotes
+            });
+        } catch (error) {
+            console.error("Error voting:", error);
+        }
+    };
+
     const handleFileSelect = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -354,6 +421,29 @@ const CommunityChat = () => {
         } finally {
             setIsUploading(false);
             if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
+
+    const handleAttachMenuAction = (type) => {
+        setShowAttachMenu(false);
+        switch(type) {
+            case 'poll':
+                setIsPollModalOpen(true);
+                break;
+            case 'document':
+                setFileAcceptType('.pdf,.doc,.docx,.xls,.xlsx,.txt');
+                setTimeout(() => fileInputRef.current?.click(), 0);
+                break;
+            case 'photos':
+                setFileAcceptType('image/*,video/*');
+                setTimeout(() => fileInputRef.current?.click(), 0);
+                break;
+            case 'audio':
+                setFileAcceptType('audio/*');
+                setTimeout(() => fileInputRef.current?.click(), 0);
+                break;
+            default:
+                break;
         }
     };
 
@@ -917,6 +1007,14 @@ const CommunityChat = () => {
                                                                 )}
                                                             </div>
                                                         )}
+                                                        {msg.type === 'poll' && (
+                                                            <PollMessage 
+                                                                pollData={msg.pollData}
+                                                                onVote={(option) => handleVote(msg.id, option)}
+                                                                currentUserId={user?.uid}
+                                                                members={communityMembers}
+                                                            />
+                                                        )}
                                                         {msg.text && (
                                                             <div className="msg-text">
                                                                 {msg.text}
@@ -961,16 +1059,41 @@ const CommunityChat = () => {
                                                     ref={fileInputRef} 
                                                     onChange={handleFileSelect} 
                                                     hidden 
-                                                    accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+                                                    accept={fileAcceptType}
                                                 />
-                                                <button 
-                                                    type="button" 
-                                                    className="action-btn"
-                                                    onClick={() => fileInputRef.current?.click()}
-                                                    disabled={isUploading}
-                                                >
-                                                    {isUploading ? <Loader2 size={22} className="animate-spin" /> : <Paperclip size={22} />}
-                                                </button>
+                                                <div className="attachment-menu-container" ref={attachMenuRef}>
+                                                    <button 
+                                                        type="button" 
+                                                        className={`action-btn ${showAttachMenu ? 'active' : ''}`}
+                                                        onClick={() => setShowAttachMenu(!showAttachMenu)}
+                                                        disabled={isUploading}
+                                                        title="Attach"
+                                                    >
+                                                        {isUploading ? <Loader2 size={22} className="animate-spin" /> : <Plus size={22} />}
+                                                    </button>
+                                                    
+                                                    {showAttachMenu && (
+                                                        <div className="attachment-dropdown-menu">
+                                                            <button type="button" onClick={() => handleAttachMenuAction('document')}>
+                                                                <div className="menu-icon doc-icon"><FileText size={20} /></div>
+                                                                <span>Document</span>
+                                                            </button>
+                                                            <button type="button" onClick={() => handleAttachMenuAction('photos')}>
+                                                                <div className="menu-icon photo-icon"><ImageIcon size={20} /></div>
+                                                                <span>Photos & Videos</span>
+                                                            </button>
+                                                            <button type="button" onClick={() => handleAttachMenuAction('audio')}>
+                                                                <div className="menu-icon audio-icon"><Music size={20} /></div>
+                                                                <span>Audio</span>
+                                                            </button>
+                                                            <button type="button" onClick={() => handleAttachMenuAction('poll')}>
+                                                                <div className="menu-icon poll-icon"><BarChart2 size={20} /></div>
+                                                                <span>Poll</span>
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+
                                                 <div className="emoji-picker-wrapper" ref={emojiPickerRef}>
                                                     <button 
                                                         type="button" 
@@ -1248,6 +1371,12 @@ const CommunityChat = () => {
                     onClose={() => setShowCallHistory(false)}
                 />
             )}
+
+            <CreatePollModal 
+                isOpen={isPollModalOpen}
+                onClose={() => setIsPollModalOpen(false)}
+                onCreatePoll={handleCreatePoll}
+            />
         </div>
     );
 };

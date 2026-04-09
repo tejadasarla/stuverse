@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useCall } from '../../context/CallContext';
 import { db } from '../../firebase.config';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, getDoc, setDoc, deleteDoc, getDocs, writeBatch, increment } from 'firebase/firestore';
-import { ArrowLeft, Send, User, MoreVertical, MessageCircle, Image, Heart, Info, Trash2, MoreHorizontal, Smile, Phone, Video, History, Paperclip, File, Download, Loader2 } from 'lucide-react';
+import { ArrowLeft, Send, User, MoreVertical, MessageCircle, Image as ImageIcon, Heart, Info, Trash2, MoreHorizontal, Smile, Phone, Video, History, Paperclip, File, Download, Loader2, Plus, FileText, Music } from 'lucide-react';
 import EmojiPicker from 'emoji-picker-react';
 import { uploadFileToCloudinary } from '../../utils/imageUtils';
 import CallHistoryPanel from '../../components/CallHistoryPanel/CallHistoryPanel';
@@ -26,6 +26,9 @@ const DirectChat = () => {
     const emojiPickerRef = useRef(null);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef(null);
+    const [showAttachMenu, setShowAttachMenu] = useState(false);
+    const [fileAcceptType, setFileAcceptType] = useState('image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.txt');
+    const attachMenuRef = useRef(null);
     const { initiateCall } = useCall();
 
     // 1. Resolve Other User info
@@ -90,6 +93,9 @@ const DirectChat = () => {
         const handleClickOutside = (event) => {
             if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
                 setShowEmojiPicker(false);
+            }
+            if (attachMenuRef.current && !attachMenuRef.current.contains(event.target)) {
+                setShowAttachMenu(false);
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
@@ -163,6 +169,26 @@ const DirectChat = () => {
         } finally {
             setIsUploading(false);
             if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
+
+    const handleAttachMenuAction = (type) => {
+        setShowAttachMenu(false);
+        switch(type) {
+            case 'document':
+                setFileAcceptType('.pdf,.doc,.docx,.xls,.xlsx,.txt');
+                setTimeout(() => fileInputRef.current?.click(), 0);
+                break;
+            case 'photos':
+                setFileAcceptType('image/*,video/*');
+                setTimeout(() => fileInputRef.current?.click(), 0);
+                break;
+            case 'audio':
+                setFileAcceptType('audio/*');
+                setTimeout(() => fileInputRef.current?.click(), 0);
+                break;
+            default:
+                break;
         }
     };
 
@@ -337,16 +363,35 @@ const DirectChat = () => {
                         ref={fileInputRef} 
                         onChange={handleFileSelect} 
                         hidden 
-                        accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+                        accept={fileAcceptType}
                     />
-                    <button 
-                        type="button" 
-                        className="action-btn"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={isUploading}
-                    >
-                        {isUploading ? <Loader2 size={22} className="animate-spin" /> : <Paperclip size={22} />}
-                    </button>
+                    <div className="attachment-menu-container" ref={attachMenuRef}>
+                        <button 
+                            type="button" 
+                            className={`action-btn ${showAttachMenu ? 'active' : ''}`}
+                            onClick={() => setShowAttachMenu(!showAttachMenu)}
+                            disabled={isUploading}
+                        >
+                            {isUploading ? <Loader2 size={22} className="animate-spin" /> : <Plus size={22} />}
+                        </button>
+                        
+                        {showAttachMenu && (
+                            <div className="attachment-dropdown-menu">
+                                <button type="button" onClick={() => handleAttachMenuAction('document')}>
+                                    <div className="menu-icon doc-icon"><FileText size={20} /></div>
+                                    <span>Document</span>
+                                </button>
+                                <button type="button" onClick={() => handleAttachMenuAction('photos')}>
+                                    <div className="menu-icon photo-icon"><ImageIcon size={20} /></div>
+                                    <span>Photos & Videos</span>
+                                </button>
+                                <button type="button" onClick={() => handleAttachMenuAction('audio')}>
+                                    <div className="menu-icon audio-icon"><Music size={20} /></div>
+                                    <span>Audio</span>
+                                </button>
+                            </div>
+                        )}
+                    </div>
                     <div className="emoji-picker-wrapper" ref={emojiPickerRef}>
                         <button 
                             type="button" 

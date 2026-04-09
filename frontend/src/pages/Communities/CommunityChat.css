@@ -714,6 +714,19 @@
     border-bottom-right-radius: 4px;
 }
 
+.msg-bubble:has(.poll-message-container) {
+    background: transparent !important;
+    color: inherit !important;
+    border: none !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+}
+
+.is-own .msg-bubble:has(.poll-message-container) {
+    border-radius: 18px !important;
+}
+
 .msg-text {
     font-size: 0.95rem;
     line-height: 1.5;
@@ -1865,4 +1878,80 @@
 @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
+}
+
+/* Attachment Menu Styles */
+.attachment-menu-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.attachment-dropdown-menu {
+    position: absolute;
+    bottom: 60px;
+    left: 0;
+    min-width: 220px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 1000;
+    animation: slideInUp 0.15s ease-out;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.attachment-dropdown-menu button {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 14px;
+    background: transparent;
+    border: none;
+    border-radius: 10px;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+}
+
+.attachment-dropdown-menu button:hover {
+    background: #f1f5f9;
+}
+
+.attachment-dropdown-menu span {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--secondary);
+    white-space: nowrap;
+    line-height: 1;
+}
+
+.menu-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+}
+
+.doc-icon { background: #7f66ff; }
+.photo-icon { background: #007aff; }
+.audio-icon { background: #ff9500; }
+.poll-icon { background: #0055ff; }
+
+.action-btn.active {
+    color: var(--primary);
+    transform: rotate(45deg);
+}
+ve {
+    background: rgba(0, 69, 255, 0.1);
+    color: var(--primary);
+    transform: rotate(45deg);
 }
