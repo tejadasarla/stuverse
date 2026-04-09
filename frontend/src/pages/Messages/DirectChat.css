@@ -486,3 +486,108 @@
     background-color: #fff !important;
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12) !important;
 }
+
+/* MEDIA MESSAGES */
+.dc-bubble.has-media {
+    padding: 6px;
+    max-width: 320px;
+}
+
+.dc-media-content {
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 4px;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.dc-shared-img {
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+    display: block;
+    cursor: zoom-in;
+    transition: transform 0.3s;
+}
+
+.dc-shared-img:hover {
+    transform: scale(1.02);
+}
+
+.dc-shared-video {
+    width: 100%;
+    max-height: 400px;
+    display: block;
+    background: #000;
+}
+
+.dc-shared-audio {
+    width: 100%;
+    padding: 4px;
+    height: 45px;
+}
+
+.dc-file-attachment {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.is-them .dc-file-attachment {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.file-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: #6366f1;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.file-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.file-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.download-link {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.is-them .download-link {
+    color: #6366f1;
+}
+
+.download-link:hover {
+    text-decoration: underline;
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}

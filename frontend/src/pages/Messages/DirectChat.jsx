@@ -4,8 +4,9 @@ import { useAuth } from '../../context/AuthContext';
 import { useCall } from '../../context/CallContext';
 import { db } from '../../firebase.config';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, getDoc, setDoc, deleteDoc, getDocs, writeBatch, increment } from 'firebase/firestore';
-import { ArrowLeft, Send, User, MoreVertical, MessageCircle, Image, Heart, Info, Trash2, MoreHorizontal, Smile, Phone, Video, History } from 'lucide-react';
+import { ArrowLeft, Send, User, MoreVertical, MessageCircle, Image, Heart, Info, Trash2, MoreHorizontal, Smile, Phone, Video, History, Paperclip, File, Download, Loader2 } from 'lucide-react';
 import EmojiPicker from 'emoji-picker-react';
+import { uploadFileToCloudinary } from '../../utils/imageUtils';
 import CallHistoryPanel from '../../components/CallHistoryPanel/CallHistoryPanel';
 import './DirectChat.css';
 
@@ -23,6 +24,8 @@ const DirectChat = () => {
     const [deletingId, setDeletingId] = useState(null);
     const [showCallHistory, setShowCallHistory] = useState(false);
     const emojiPickerRef = useRef(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = useRef(null);
     const { initiateCall } = useCall();
 
     // 1. Resolve Other User info
@@ -97,11 +100,12 @@ const DirectChat = () => {
         setNewMessage(prev => prev + emojiData.emoji);
     };
 
-    const handleSendMessage = async (e) => {
-        e.preventDefault();
-        if (!newMessage.trim() || !user || !chatId) return;
-
+    const handleSendMessage = async (e, mediaData = null) => {
+        if (e) e.preventDefault();
+        
         const text = newMessage.trim();
+        if (!text && !mediaData) return;
+
         setNewMessage('');
 
         try {
@@ -111,22 +115,54 @@ const DirectChat = () => {
             // Sync Inbox metadata
             await setDoc(chatRef, {
                 participants: [user.uid, otherUserId],
-                lastMessage: text,
+                lastMessage: mediaData ? (mediaData.type.startsWith('image/') ? '📷 Photo' : mediaData.type.startsWith('video/') ? '🎥 Video' : '📁 Attachment') : text,
                 lastMessageTime: serverTimestamp(),
                 [`lastRead_${user.uid}`]: serverTimestamp(),
-                [`unreadCount_${otherUserId}`]: increment(1), // Increment for receiver
-                isCleared: false // Reset visibility in inbox
+                [`unreadCount_${otherUserId}`]: increment(1),
+                isCleared: false
             }, { merge: true });
 
             // Add the real message
             await addDoc(collection(db, 'direct_chats', chatId, 'messages'), {
-                text,
+                text: text || '',
                 senderId: user.uid,
                 senderName: userData?.username || 'User',
-                createdAt: serverTimestamp()
+                createdAt: serverTimestamp(),
+                ...(mediaData && {
+                    fileUrl: mediaData.url,
+                    fileType: mediaData.type,
+                    fileName: mediaData.name
+                })
             });
         } catch (err) {
             console.error("Send error:", err);
+        }
+    };
+
+    const handleFileSelect = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Size limit (e.g., 50MB)
+        if (file.size > 50 * 1024 * 1024) {
+            alert("File is too large. Max limit is 50MB.");
+            return;
+        }
+
+        setIsUploading(true);
+        try {
+            const fileUrl = await uploadFileToCloudinary(file, 'stuverse_chat_uploads');
+            await handleSendMessage(null, {
+                url: fileUrl,
+                type: file.type,
+                name: file.name
+            });
+        } catch (err) {
+            console.error("File upload error:", err);
+            alert("Failed to upload file.");
+        } finally {
+            setIsUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
         }
     };
 
@@ -251,8 +287,31 @@ const DirectChat = () => {
                 {messages.map((msg) => (
                     <div key={msg.id} className={`dc-msg-row ${msg.senderId === user.uid ? 'is-me' : 'is-them'}`}>
                         <div className="dc-bubble-wrapper">
-                            <div className="dc-bubble">
-                                <p>{msg.text}</p>
+                            <div className={`dc-bubble ${msg.fileUrl ? 'has-media' : ''}`}>
+                                {msg.fileUrl && (
+                                    <div className="dc-media-content">
+                                        {msg.fileType?.startsWith('image/') ? (
+                                            <a href={msg.fileUrl} target="_blank" rel="noopener noreferrer">
+                                                <img src={msg.fileUrl} alt="shared" className="dc-shared-img" />
+                                            </a>
+                                        ) : msg.fileType?.startsWith('video/') ? (
+                                            <video src={msg.fileUrl} controls className="dc-shared-video" />
+                                        ) : msg.fileType?.startsWith('audio/') ? (
+                                            <audio src={msg.fileUrl} controls className="dc-shared-audio" />
+                                        ) : (
+                                            <div className="dc-file-attachment">
+                                                <div className="file-icon"><File size={24} /></div>
+                                                <div className="file-info">
+                                                    <span className="file-name">{msg.fileName || 'Attachment'}</span>
+                                                    <a href={msg.fileUrl} target="_blank" rel="noopener noreferrer" className="download-link">
+                                                        <Download size={16} /> Download
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                                {msg.text && <p>{msg.text}</p>}
                                 <span className="dc-time">{formatTime(msg.createdAt)}</span>
                             </div>
                             {msg.senderId === user.uid && (
@@ -273,6 +332,21 @@ const DirectChat = () => {
 
             <form className="dc-input-area" onSubmit={handleSendMessage}>
                 <div className="dc-input-wrapper">
+                    <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        onChange={handleFileSelect} 
+                        hidden 
+                        accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+                    />
+                    <button 
+                        type="button" 
+                        className="action-btn"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isUploading}
+                    >
+                        {isUploading ? <Loader2 size={22} className="animate-spin" /> : <Paperclip size={22} />}
+                    </button>
                     <div className="emoji-picker-wrapper" ref={emojiPickerRef}>
                         <button 
                             type="button" 

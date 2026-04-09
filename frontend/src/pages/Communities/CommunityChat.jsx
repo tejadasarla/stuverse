@@ -4,8 +4,9 @@ import { useAuth } from '../../context/AuthContext';
 import { useCall } from '../../context/CallContext';
 import { db } from '../../firebase.config';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, arrayUnion, arrayRemove, where, deleteDoc, increment, getDocs, writeBatch } from 'firebase/firestore';
-import { Send, ArrowLeft, Hash, Users, Image as ImageIcon, Smile, Bell, MoreVertical, Plus, Trash2, UserMinus, LogOut, Info, X, Video, School, Lock, History } from 'lucide-react';
+import { Send, ArrowLeft, Hash, Users, Image as ImageIcon, Smile, Bell, MoreVertical, Plus, Trash2, UserMinus, LogOut, Info, X, Video, School, Lock, History, Paperclip, File, Download, Loader2 } from 'lucide-react';
 import EmojiPicker from 'emoji-picker-react';
+import { uploadFileToCloudinary } from '../../utils/imageUtils';
 import CallHistoryPanel from '../../components/CallHistoryPanel/CallHistoryPanel';
 import './CommunityChat.css';
 
@@ -37,6 +38,8 @@ const CommunityChat = () => {
     const emojiPickerRef = useRef(null);
     const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
     const headerMenuRef = useRef(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = useRef(null);
 
     const isJoined = userData?.communities?.includes(id) || currentCommunity?.adminId === user?.uid;
 
@@ -296,9 +299,11 @@ const CommunityChat = () => {
         }
     };
 
-    const handleSendMessage = async (e) => {
-        e.preventDefault();
-        if (!newMessage.trim() || !user || !activeGroupId) return;
+    const handleSendMessage = async (e, mediaData = null) => {
+        if (e) e.preventDefault();
+        
+        const messageText = newMessage.trim();
+        if (!messageText && !mediaData) return;
 
         // Restriction for announcement groups
         if (activeGroup?.type === 'announcements' && currentCommunity.adminId !== user.uid) {
@@ -306,19 +311,49 @@ const CommunityChat = () => {
             return;
         }
 
-        const messageText = newMessage.trim();
         setNewMessage('');
 
         try {
             await addDoc(collection(db, 'communities', id, 'groups', activeGroupId, 'messages'), {
-                text: messageText,
+                text: messageText || '',
                 userId: user.uid,
                 username: userData?.username || 'User',
                 userPhoto: userData?.photoURL || '',
-                createdAt: serverTimestamp()
+                createdAt: serverTimestamp(),
+                ...(mediaData && {
+                    fileUrl: mediaData.url,
+                    fileType: mediaData.type,
+                    fileName: mediaData.name
+                })
             });
         } catch (error) {
             console.error("Error sending message:", error.message);
+        }
+    };
+
+    const handleFileSelect = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (file.size > 50 * 1024 * 1024) {
+            alert("File is too large. Max 50MB.");
+            return;
+        }
+
+        setIsUploading(true);
+        try {
+            const fileUrl = await uploadFileToCloudinary(file, 'stuverse_chat_uploads');
+            await handleSendMessage(null, {
+                url: fileUrl,
+                type: file.type,
+                name: file.name
+            });
+        } catch (err) {
+            console.error("Upload error:", err);
+            alert("Failed to upload file.");
+        } finally {
+            setIsUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
         }
     };
 
@@ -858,10 +893,35 @@ const CommunityChat = () => {
                                                             <span className="msg-time">{formatTime(msg.createdAt)}</span>
                                                         </div>
                                                     )}
-                                                    <div className="msg-bubble">
-                                                        <div className="msg-text">
-                                                            {msg.text}
-                                                        </div>
+                                                    <div className={`msg-bubble ${msg.fileUrl ? 'has-media' : ''}`}>
+                                                        {msg.fileUrl && (
+                                                            <div className="msg-media-content">
+                                                                {msg.fileType?.startsWith('image/') ? (
+                                                                    <a href={msg.fileUrl} target="_blank" rel="noopener noreferrer">
+                                                                        <img src={msg.fileUrl} alt="shared" className="msg-shared-img" />
+                                                                    </a>
+                                                                ) : msg.fileType?.startsWith('video/') ? (
+                                                                    <video src={msg.fileUrl} controls className="msg-shared-video" />
+                                                                ) : msg.fileType?.startsWith('audio/') ? (
+                                                                    <audio src={msg.fileUrl} controls className="msg-shared-audio" />
+                                                                ) : (
+                                                                    <div className="msg-file-attachment">
+                                                                        <div className="file-icon"><File size={24} /></div>
+                                                                        <div className="file-info">
+                                                                            <span className="file-name">{msg.fileName || 'Attachment'}</span>
+                                                                            <a href={msg.fileUrl} target="_blank" rel="noopener noreferrer" className="download-link">
+                                                                                <Download size={16} /> Download
+                                                                            </a>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                        {msg.text && (
+                                                            <div className="msg-text">
+                                                                {msg.text}
+                                                            </div>
+                                                        )}
                                                         <div className="msg-footer">
                                                             <span className="msg-time-small">{formatTime(msg.createdAt)}</span>
                                                         </div>
@@ -896,6 +956,21 @@ const CommunityChat = () => {
                                     ) : (
                                         <form className="discord-input-form" onSubmit={handleSendMessage}>
                                             <div className="discord-input-inner">
+                                                <input 
+                                                    type="file" 
+                                                    ref={fileInputRef} 
+                                                    onChange={handleFileSelect} 
+                                                    hidden 
+                                                    accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+                                                />
+                                                <button 
+                                                    type="button" 
+                                                    className="action-btn"
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                    disabled={isUploading}
+                                                >
+                                                    {isUploading ? <Loader2 size={22} className="animate-spin" /> : <Paperclip size={22} />}
+                                                </button>
                                                 <div className="emoji-picker-wrapper" ref={emojiPickerRef}>
                                                     <button 
                                                         type="button" 

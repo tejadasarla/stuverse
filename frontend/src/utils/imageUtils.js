@@ -72,34 +72,37 @@ export const compressImage = (file, maxWidth = 800, maxHeight = 800) => {
 };
 
 /**
- * Uploads an image to Cloudinary and returns the secure download URL.
+ * Uploads a file to Cloudinary and returns the secure download URL.
+ * Supports images, videos, audio, and documents.
  * @param {File} file - The file to upload.
- * @param {string} storagePath - (Ignored) Legacy path from Firebase implementation.
- * @param {Object} options - Options containing maxWidth and maxHeight.
+ * @param {string} folder - The folder in Cloudinary.
+ * @param {Object} options - Options containing maxWidth and maxHeight (for images).
  * @returns {Promise<string>} Download URL
  */
-export const uploadImageToStorage = async (file, storagePath, options = {}) => {
+export const uploadFileToCloudinary = async (file, folder = 'stuverse_uploads', options = {}) => {
     if (!file) throw new Error("No file provided for upload.");
-    
-    // File size restriction before compression (e.g., 5MB limit)
-    if (file.size > 5 * 1024 * 1024) {
-        throw new Error("Image must be less than 5MB");
-    }
 
-    const { maxWidth = 800, maxHeight = 800 } = options;
+    const isImage = file.type.startsWith('image/');
+    let fileToUpload = file;
 
     try {
-        // Compress the image before uploading
-        const compressedBlob = await compressImage(file, maxWidth, maxHeight);
-        
-        // Prepare FormData for Cloudinary
+        // If it's an image, we still want to compress it to save credits/bandwidth
+        if (isImage) {
+            const { maxWidth = 1200, maxHeight = 1200 } = options;
+            fileToUpload = await compressImage(file, maxWidth, maxHeight);
+        }
+
         const formData = new FormData();
-        formData.append('file', compressedBlob);
+        formData.append('file', fileToUpload);
         formData.append('upload_preset', 'stuverse_uploads');
+        formData.append('folder', folder);
+
+        // Determine resource type: 'image', 'video', or 'raw'
+        // 'auto' is the safest bet for a generic upload function
+        const resourceType = 'auto';
 
         // Cloudinary Unsigned Upload API
-        // Cloud Name: dwgherwne
-        const response = await fetch(`https://api.cloudinary.com/v1_1/dwgherwne/image/upload`, {
+        const response = await fetch(`https://api.cloudinary.com/v1_1/dwgherwne/${resourceType}/upload`, {
             method: 'POST',
             body: formData,
         });
@@ -108,13 +111,21 @@ export const uploadImageToStorage = async (file, storagePath, options = {}) => {
 
         if (!response.ok) {
             console.error("Cloudinary Upload Error:", data);
-            throw new Error(data.error?.message || "Failed to upload image to Cloudinary");
+            throw new Error(data.error?.message || "Failed to upload to Cloudinary");
         }
 
-        // Return the secure URL provided by Cloudinary
         return data.secure_url;
     } catch (error) {
-        console.error("Image Upload Error:", error);
-        throw new Error(`Failed to upload image: ${error.message}`);
+        console.error("Cloudinary Upload Error:", error);
+        throw new Error(`Upload failed: ${error.message}`);
     }
+};
+
+/**
+ * Legacy wrapper for compatibility with existing profile/community code.
+ */
+export const uploadImageToStorage = async (file, storagePath, options = {}) => {
+    // Determine a reasonable folder from the storagePath if possible
+    const folder = storagePath ? storagePath.split('/')[0] : 'stuverse_uploads';
+    return uploadFileToCloudinary(file, folder, options);
 };
