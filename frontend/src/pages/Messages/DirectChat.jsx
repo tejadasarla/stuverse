@@ -4,10 +4,9 @@ import { useAuth } from '../../context/AuthContext';
 import { useCall } from '../../context/CallContext';
 import { db } from '../../firebase.config';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, getDoc, setDoc, deleteDoc, getDocs, writeBatch, increment } from 'firebase/firestore';
-import { ArrowLeft, Send, User, MoreVertical, MessageCircle, Image as ImageIcon, Heart, Info, Trash2, MoreHorizontal, Smile, Phone, Video, History, Paperclip, File, Download, Loader2, Plus, FileText, Music } from 'lucide-react';
+import { ArrowLeft, Send, User, MoreVertical, MessageCircle, Image as ImageIcon, Heart, Info, Trash2, MoreHorizontal, Smile, Phone, Video, Paperclip, File, Download, Loader2, Plus, FileText, Music } from 'lucide-react';
 import EmojiPicker from 'emoji-picker-react';
 import { uploadFileToCloudinary } from '../../utils/imageUtils';
-import CallHistoryPanel from '../../components/CallHistoryPanel/CallHistoryPanel';
 import './DirectChat.css';
 
 const DirectChat = () => {
@@ -22,7 +21,6 @@ const DirectChat = () => {
     const [showOptions, setShowOptions] = useState(false);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [deletingId, setDeletingId] = useState(null);
-    const [showCallHistory, setShowCallHistory] = useState(false);
     const emojiPickerRef = useRef(null);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef(null);
@@ -283,9 +281,6 @@ const DirectChat = () => {
                             <button onClick={() => navigate(`/profile/${otherUser?.id}`)}>
                                 <User size={16} /> View Profile
                             </button>
-                            <button onClick={() => { setShowCallHistory(true); setShowOptions(false); }}>
-                                <History size={16} /> Call History
-                            </button>
                             <button className="clear-chat-btn" onClick={handleClearChat}>
                                 <Trash2 size={16} /> Clear Chat
                             </button>
@@ -424,15 +419,6 @@ const DirectChat = () => {
                 </div>
             </form>
 
-            {showCallHistory && (
-                <CallHistoryPanel
-                    currentUserId={user?.uid}
-                    targetId={otherUser?.id}
-                    context="direct"
-                    onClose={() => setShowCallHistory(false)}
-                    onCallBack={(type) => { handleStartCall(type); setShowCallHistory(false); }}
-                />
-            )}
         </div>
     );
 };

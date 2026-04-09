@@ -4,10 +4,9 @@ import { useAuth } from '../../context/AuthContext';
 import { useCall } from '../../context/CallContext';
 import { db } from '../../firebase.config';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, arrayUnion, arrayRemove, where, deleteDoc, increment, getDocs, writeBatch } from 'firebase/firestore';
-import { Send, ArrowLeft, Hash, Users, Image as ImageIcon, Smile, Bell, MoreVertical, Plus, Trash2, UserMinus, LogOut, Info, X, Video, School, Lock, History, Paperclip, File, Download, Loader2, BarChart2, FileText, Music } from 'lucide-react';
+import { Send, ArrowLeft, Hash, Users, Image as ImageIcon, Smile, Bell, MoreVertical, Plus, Trash2, UserMinus, LogOut, Info, X, Video, School, Lock, Paperclip, File, Download, Loader2, BarChart2, FileText, Music } from 'lucide-react';
 import EmojiPicker from 'emoji-picker-react';
 import { uploadFileToCloudinary } from '../../utils/imageUtils';
-import CallHistoryPanel from '../../components/CallHistoryPanel/CallHistoryPanel';
 import CreatePollModal from '../../components/CreatePollModal/CreatePollModal';
 import PollMessage from '../../components/PollMessage/PollMessage';
 import './CommunityChat.css';
@@ -701,7 +700,6 @@ const CommunityChat = () => {
     };
 
     const [activeTab, setActiveTab] = useState('chat'); // 'chat' or 'manage'
-    const [showCallHistory, setShowCallHistory] = useState(false);
 
     return (
         <div className="chat-layout">
@@ -874,15 +872,9 @@ const CommunityChat = () => {
                                                 onClick={() => { setActiveTab('manage'); setHeaderMenuOpen(false); }}
                                             >
                                                 <Users size={16} /> Manage Groups
-                                                {activeGroup?.pendingRequests?.length > 0 && <span className="notif-dot" style={{ position: 'static' }} />}
+                                                {activeGroup?.pendingRequests?.length > 0 && currentCommunity.adminId === user?.uid && <span className="notif-dot" style={{ position: 'static' }} />}
                                             </button>
                                         )}
-
-                                        <button
-                                            onClick={() => { setShowCallHistory(true); setHeaderMenuOpen(false); }}
-                                        >
-                                            <History size={16} /> Call History
-                                        </button>
                                         
                                         {(currentCommunity.adminId === user?.uid || currentCommunity.admins?.includes(user?.uid)) && (
                                             <button 
@@ -1362,15 +1354,6 @@ const CommunityChat = () => {
                 </div>
             )}
 
-            {showCallHistory && (
-                <CallHistoryPanel
-                    currentUserId={user?.uid}
-                    targetId={id}
-                    context="community"
-                    communityId={id}
-                    onClose={() => setShowCallHistory(false)}
-                />
-            )}
 
             <CreatePollModal 
                 isOpen={isPollModalOpen}

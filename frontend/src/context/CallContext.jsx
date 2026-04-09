@@ -34,9 +34,9 @@ export const CallProvider = ({ children }) => {
     // Direct ref to remote video element — allows ontrack to bypass React render timing
     const remoteVideoEl = useRef(null);
 
-    const writeCallHistory = async (status, meta, durationSeconds = 0) => {
+    const writeCallHistory = async (status, meta, durationSeconds = 0, historyId = null) => {
         try {
-            await addDoc(collection(db, 'callHistory'), {
+            const data = {
                 callerId: meta.callerId,
                 callerName: meta.callerName,
                 callerPhoto: meta.callerPhoto || '',
@@ -50,7 +50,13 @@ export const CallProvider = ({ children }) => {
                 context: meta.context || 'direct',
                 communityId: meta.communityId || null,
                 startedAt: serverTimestamp(),
-            });
+            };
+
+            if (historyId) {
+                await setDoc(doc(db, 'callHistory', historyId), data, { merge: true });
+            } else {
+                await addDoc(collection(db, 'callHistory'), data);
+            }
         } catch (err) {
             console.error('Failed to write call history:', err);
         }
@@ -200,6 +206,12 @@ export const CallProvider = ({ children }) => {
                 }
                 cleanupCall();
             } else if (data?.status === 'ended') {
+                if (callMeta.current && callMeta.current.callerId === user?.uid) {
+                    const status = callAcceptedAt.current ? 'answered' : 'missed';
+                    const duration = callAcceptedAt.current ? Math.round((Date.now() - callAcceptedAt.current) / 1000) : 0;
+                    const historyId = (callMeta.current.context === 'direct' && callDoc.id) ? `${callDoc.id}_history` : null;
+                    writeCallHistory(status, callMeta.current, duration, historyId);
+                }
                 cleanupCall();
             }
         });
@@ -273,6 +285,7 @@ export const CallProvider = ({ children }) => {
         callAcceptedAt.current = Date.now();
 
         // Store metadata for history writing (receiver side)
+        const isCommunityCall = !!call.communityId || call.id === call.receiverId; // Fallback detection
         callMeta.current = {
             callerId: call.callerId,
             callerName: call.callerName,
@@ -280,8 +293,8 @@ export const CallProvider = ({ children }) => {
             receiverId: user.uid,
             receiverName: userData?.username || 'User',
             type: call.type || 'video',
-            context: 'direct',
-            communityId: null,
+            context: isCommunityCall ? 'community' : 'direct',
+            communityId: isCommunityCall ? call.id : null,
         };
 
         if (candidateUnsub.current) candidateUnsub.current();
@@ -295,7 +308,19 @@ export const CallProvider = ({ children }) => {
 
         if (callUnsub.current) callUnsub.current();
         callUnsub.current = onSnapshot(callDoc, (snapshot) => {
-            if (snapshot.data()?.status === 'ended') cleanupCall();
+            const data = snapshot.data();
+            if (data?.status === 'ended') {
+                // If the remote end hung up, ensure we log history if we are the caller
+                if (callMeta.current && callMeta.current.callerId === user?.uid && !activeCall) {
+                    // This was a missed call (caller never got to active state)
+                    writeCallHistory('missed', callMeta.current, 0, `${call.id}_history`);
+                } else if (callMeta.current && activeCall) {
+                    // Call was active, record duration
+                    const duration = callAcceptedAt.current ? Math.round((Date.now() - callAcceptedAt.current) / 1000) : 0;
+                    writeCallHistory('answered', callMeta.current, duration, `${call.id}_history`);
+                }
+                cleanupCall();
+            }
         });
 
         setActiveCall(call);
@@ -331,13 +356,19 @@ export const CallProvider = ({ children }) => {
             ? Math.round((Date.now() - callAcceptedAt.current) / 1000)
             : 0;
 
-        if (callId || activeCall?.id) {
-            await updateDoc(doc(db, 'calls', callId || activeCall.id), { status: 'ended' });
-        }
+        const currentCallId = callId || activeCall?.id;
+        
+        if (currentCallId) {
+            // Write history before updating status to ensure metadata is still available
+            if (callMeta.current) {
+                const status = callAcceptedAt.current ? 'answered' : 'missed';
+                // Use a deterministic ID based on call session to avoid duplicates from both sides
+                // For community calls (where callId is communityId), we don't want to use it as ID
+                const historyId = (callMeta.current.context === 'direct' && currentCallId) ? `${currentCallId}_history` : null;
+                await writeCallHistory(status, callMeta.current, durationSeconds, historyId);
+            }
 
-        // Write answered call history (only caller side writes, to avoid duplicates)
-        if (callMeta.current && callMeta.current.callerId === user?.uid) {
-            await writeCallHistory('answered', callMeta.current, durationSeconds);
+            await updateDoc(doc(db, 'calls', currentCallId), { status: 'ended' });
         }
 
         cleanupCall();

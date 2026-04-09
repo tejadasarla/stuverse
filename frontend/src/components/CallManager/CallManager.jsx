@@ -1,8 +1,40 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback, memo } from 'react';
 import { useCall } from '../../context/CallContext';
 import { useAuth } from '../../context/AuthContext';
 import { Phone, PhoneOff, Video, XCircle, Mic, MicOff, VideoOff } from 'lucide-react';
 import './CallManager.css';
+
+const CallTimer = memo(({ activeCall }) => {
+    const [callDuration, setCallDuration] = useState(0);
+
+    // Timer effect - isolated to this component to prevent main UI re-renders
+    useEffect(() => {
+        let interval;
+        if (activeCall) {
+            setCallDuration(0); // Reset when a call becomes active
+            interval = setInterval(() => {
+                setCallDuration(prev => prev + 1);
+            }, 1000);
+        } else {
+            setCallDuration(0);
+        }
+        return () => clearInterval(interval);
+    }, [activeCall]);
+
+    const formatDuration = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    if (!activeCall) return null;
+
+    return (
+        <div className="call-top-bar">
+            <span className="call-timer">{formatDuration(callDuration)}</span>
+        </div>
+    );
+});
 
 const CallManager = () => {
     const { 
@@ -24,40 +56,6 @@ const CallManager = () => {
 
     const [isMuted, setIsMuted] = useState(false);
     const [isVideoOff, setIsVideoOff] = useState(false);
-    const [callDuration, setCallDuration] = useState(0);
-
-    // Sync UI state with actual stream tracks
-    useEffect(() => {
-        if (localStream) {
-            const audioTrack = localStream.getAudioTracks()[0];
-            const videoTrack = localStream.getVideoTracks()[0];
-            
-            if (audioTrack) setIsMuted(!audioTrack.enabled);
-            if (videoTrack) setIsVideoOff(!videoTrack.enabled);
-        } else {
-            setIsMuted(false);
-            setIsVideoOff(false);
-        }
-    }, [localStream]);
-
-    // Timer effect
-    useEffect(() => {
-        let interval;
-        if (activeCall) {
-            interval = setInterval(() => {
-                setCallDuration(prev => prev + 1);
-            }, 1000);
-        } else {
-            setCallDuration(0);
-        }
-        return () => clearInterval(interval);
-    }, [activeCall]);
-
-    const formatDuration = (seconds) => {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    };
 
     const toggleMute = () => {
         if (localStream) {
@@ -82,37 +80,35 @@ const CallManager = () => {
     };
 
     useEffect(() => {
-        if (localVideoRef.current && localStream) {
+        if (localVideoRef.current && localStream && localVideoRef.current.srcObject !== localStream) {
             localVideoRef.current.srcObject = localStream;
             localVideoRef.current.play().catch(() => {});
         }
     }, [localStream, activeCall]);
 
     useEffect(() => {
-        if (remoteVideoRef.current && remoteStream) {
-            // Force re-attach even if stream object reference is same (tracks may have been added)
-            remoteVideoRef.current.srcObject = null;
+        if (remoteVideoRef.current && remoteStream && remoteVideoRef.current.srcObject !== remoteStream) {
             remoteVideoRef.current.srcObject = remoteStream;
             remoteVideoRef.current.play().catch(() => {});
         }
     }, [remoteStream, activeCall]);
 
-    // Extra safety: re-attach srcObject whenever the video element mounts (activeCall triggers render)
-    const attachRemoteStream = (el) => {
+    // Memoized ref handlers to prevent unnecessary re-attachments during re-renders
+    const attachRemoteStream = useCallback((el) => {
         remoteVideoRef.current = el;
-        if (el && remoteStream) {
+        if (el && remoteStream && el.srcObject !== remoteStream) {
             el.srcObject = remoteStream;
             el.play().catch(() => {});
         }
-    };
+    }, [remoteStream, remoteVideoRef]);
 
-    const attachLocalStream = (el) => {
+    const attachLocalStream = useCallback((el) => {
         localVideoRef.current = el;
-        if (el && localStream) {
+        if (el && localStream && el.srcObject !== localStream) {
             el.srcObject = localStream;
             el.play().catch(() => {});
         }
-    };
+    }, [localStream]);
 
     if (incomingCall) {
         return (
@@ -162,9 +158,7 @@ const CallManager = () => {
     if (activeCall) {
         return (
             <div className="active-call-overlay">
-                <div className="call-top-bar">
-                    <span className="call-timer">{formatDuration(callDuration)}</span>
-                </div>
+                <CallTimer activeCall={activeCall} />
                 <div className="video-grid">
                     <div className="remote-video-container">
                         <video ref={attachRemoteStream} autoPlay playsInline className="remote-video" />

@@ -65,14 +65,17 @@ const CallHistoryPanel = ({ currentUserId, targetId, context = 'direct', communi
         }
 
         const unsub = onSnapshot(q, (snap) => {
+            console.log(`CallHistoryPanel: Fetched ${snap.docs.length} records for ${context}`);
             let recs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
             // For direct chats: filter to only records between these two specific users
             if (context === 'direct') {
+                const oldLen = recs.length;
                 recs = recs.filter(r =>
                     (r.callerId === currentUserId && r.receiverId === targetId) ||
                     (r.callerId === targetId && r.receiverId === currentUserId)
                 );
+                console.log(`CallHistoryPanel: Filtered from ${oldLen} to ${recs.length} for target ${targetId}`);
             }
 
             // Sort client-side: newest first
