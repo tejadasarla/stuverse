@@ -85,6 +85,20 @@ const CallManager = () => {
     };
 
     useEffect(() => {
+        if (activeCall) {
+            // Reset state for new call
+            setIsMuted(false);
+            setIsVideoOff(activeCall.type === 'audio');
+            setIsLocalMain(false);
+        } else {
+            // Clear state when call ends
+            setIsMuted(false);
+            setIsVideoOff(false);
+            setIsLocalMain(false);
+        }
+    }, [activeCall?.id, activeCall?.type]);
+
+    useEffect(() => {
         if (localVideoRef.current && localStream && localVideoRef.current.srcObject !== localStream) {
             localVideoRef.current.srcObject = localStream;
             localVideoRef.current.play().catch(() => {});

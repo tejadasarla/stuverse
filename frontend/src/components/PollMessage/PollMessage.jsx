@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Check, Users, X } from 'lucide-react';
 import './PollMessage.css';
 
@@ -9,11 +9,29 @@ const PollMessage = ({ pollData, onVote, currentUserId, members }) => {
     // Calculate total votes
     const totalVotes = useMemo(() => {
         const uniqueVoters = new Set();
-        Object.values(votes).forEach(voterList => {
+        (votes ? Object.values(votes) : []).forEach(voterList => {
             voterList.forEach(uid => uniqueVoters.add(uid));
         });
         return uniqueVoters.size;
     }, [votes]);
+
+    // Close modal on scroll or click anywhere
+    useEffect(() => {
+        if (!showVoters) return;
+
+        const handleClose = () => setShowVoters(null);
+
+        // Add listeners to close on any scroll or interaction
+        window.addEventListener('scroll', handleClose, true);
+        window.addEventListener('wheel', handleClose, true);
+        window.addEventListener('touchmove', handleClose, true);
+
+        return () => {
+            window.removeEventListener('scroll', handleClose, true);
+            window.removeEventListener('wheel', handleClose, true);
+            window.removeEventListener('touchmove', handleClose, true);
+        };
+    }, [showVoters]);
 
     // Check if current user has voted for a specific option
     const hasVotedFor = (option) => {
