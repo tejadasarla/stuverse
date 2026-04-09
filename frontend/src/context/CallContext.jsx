@@ -24,6 +24,7 @@ export const CallProvider = ({ children }) => {
     const [callId, setCallId] = useState(null);
     
     const pc = useRef(new RTCPeerConnection(servers));
+    const remoteStreamRef = useRef(new MediaStream());
     const callUnsub = useRef(null);
     const candidateUnsub = useRef(null);
     // Track when the call was accepted for duration calculation
@@ -73,6 +74,7 @@ export const CallProvider = ({ children }) => {
         
         pc.current.close();
         pc.current = new RTCPeerConnection(servers);
+        remoteStreamRef.current = new MediaStream();
     };
 
     useEffect(() => {
@@ -120,19 +122,20 @@ export const CallProvider = ({ children }) => {
         }
         setLocalStream(stream);
         
-        const remoteStr = new MediaStream();
-        setRemoteStream(remoteStr);
+        // Reset the persistent remote stream and expose it
+        remoteStreamRef.current = new MediaStream();
+        setRemoteStream(remoteStreamRef.current);
 
         stream.getTracks().forEach((track) => pc.current.addTrack(track, stream));
 
         pc.current.ontrack = (event) => {
-            const stream = (event.streams && event.streams[0])
-                ? event.streams[0]
-                : new MediaStream([event.track]);
-            setRemoteStream(stream);
+            event.streams[0]?.getTracks().forEach((track) => {
+                remoteStreamRef.current.addTrack(track);
+            });
+            setRemoteStream(remoteStreamRef.current);
             // Also set directly on the video element if it's already mounted
             if (remoteVideoEl.current) {
-                remoteVideoEl.current.srcObject = stream;
+                remoteVideoEl.current.srcObject = remoteStreamRef.current;
                 remoteVideoEl.current.play().catch(() => {});
             }
         };
@@ -232,19 +235,20 @@ export const CallProvider = ({ children }) => {
         }
         setLocalStream(stream);
 
-        const remoteStr = new MediaStream();
-        setRemoteStream(remoteStr);
+        // Reset the persistent remote stream and expose it
+        remoteStreamRef.current = new MediaStream();
+        setRemoteStream(remoteStreamRef.current);
 
         stream.getTracks().forEach((track) => pc.current.addTrack(track, stream));
 
         pc.current.ontrack = (event) => {
-            const stream = (event.streams && event.streams[0])
-                ? event.streams[0]
-                : new MediaStream([event.track]);
-            setRemoteStream(stream);
+            event.streams[0]?.getTracks().forEach((track) => {
+                remoteStreamRef.current.addTrack(track);
+            });
+            setRemoteStream(remoteStreamRef.current);
             // Also set directly on the video element if it's already mounted
             if (remoteVideoEl.current) {
-                remoteVideoEl.current.srcObject = stream;
+                remoteVideoEl.current.srcObject = remoteStreamRef.current;
                 remoteVideoEl.current.play().catch(() => {});
             }
         };

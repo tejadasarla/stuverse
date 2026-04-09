@@ -90,6 +90,8 @@ const CallManager = () => {
 
     useEffect(() => {
         if (remoteVideoRef.current && remoteStream) {
+            // Force re-attach even if stream object reference is same (tracks may have been added)
+            remoteVideoRef.current.srcObject = null;
             remoteVideoRef.current.srcObject = remoteStream;
             remoteVideoRef.current.play().catch(() => {});
         }
