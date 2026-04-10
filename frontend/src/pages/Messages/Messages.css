@@ -1,22 +1,22 @@
 .messages-page {
     display: flex;
-    background: #fff;
+    background: var(--bg-light);
     height: calc(100vh - 80px); /* Adjusted for navbar height */
     overflow: hidden;
     max-width: 1200px;
     margin: 0 auto;
-    border: 1px solid #dbdbdb;
-    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
 }
 
 /* SIDEBAR - CHAT LIST */
 .messages-sidebar {
     width: 350px;
     flex-shrink: 0;
-    border-right: 1px solid #dbdbdb;
+    border-right: 1px solid rgba(0, 0, 0, 0.08);
     display: flex;
     flex-direction: column;
-    background: #fff;
+    background: var(--bg-white);
     z-index: 5;
 }
 
@@ -134,7 +134,7 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    background: #fff;
+    background: var(--surface-gradient);
     position: relative;
 }
 
